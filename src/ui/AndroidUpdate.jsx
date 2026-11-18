@@ -115,7 +115,7 @@ export function AndroidUpdate() {
     else void copyLink();
   }
   return (
-    <aside className="android-update" aria-label="อัปเดตแอป">
+    <aside className="android-update" data-step={step} aria-label="อัปเดตแอป">
       <ArrowDownToLine size={20} aria-hidden="true" />
       <div aria-live="polite">
         <strong>{release ? "มีอัปเดต " + release.versionName : message}</strong>

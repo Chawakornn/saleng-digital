@@ -593,6 +593,18 @@ body:has(.menu-drawer[open]) {
   padding: 0;
   border: 0;
 }
+.android-update[data-step="queued"] {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) 44px;
+}
+.android-update[data-step="queued"] .primary {
+  grid-column: 2;
+  justify-self: start;
+}
+.android-update[data-step="queued"] .update-later {
+  grid-area: 1 / 3;
+  align-self: start;
+}
 @media print {
   .android-update {
     display: none;
