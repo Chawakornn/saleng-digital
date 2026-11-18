@@ -21,6 +21,15 @@
       ]
     },
     {
+      "source": "/downloads/android-release.json",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "no-store"
+        }
+      ]
+    },
+    {
       "source": "/(.*)",
       "headers": [
         {
@@ -43,5 +52,7 @@
       ]
     }
   ],
-  "regions": ["hnd1"]
+  "regions": [
+    "hnd1"
+  ]
 }

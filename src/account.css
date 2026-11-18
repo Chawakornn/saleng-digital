@@ -542,3 +542,59 @@ body:has(.menu-drawer[open]) {
     transform: scale(1);
   }
 }
+
+.android-update {
+  position: fixed;
+  z-index: 6;
+  bottom: calc(76px + env(safe-area-inset-bottom));
+  left: 50%;
+  transform: translateX(-50%);
+  width: min(540px, calc(100% - 24px));
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  border: 1px solid #45634c;
+  border-radius: 14px;
+  background: #19372b;
+  color: #fff;
+  box-shadow: 0 5px 20px #18352526;
+}
+.android-update > div {
+  flex: 1;
+}
+.android-update > svg {
+  flex: none;
+  color: #d9ec9f;
+}
+.android-update strong {
+  font-size: 15px;
+}
+.android-update p {
+  color: #e5efe4;
+  margin: 4px 0 0;
+  font-size: 14px;
+  line-height: 1.55;
+}
+.android-update .primary {
+  min-height: 44px;
+  padding: 8px 12px;
+  background: #d9ec9f;
+  color: #183827;
+  white-space: nowrap;
+}
+.android-update .update-later {
+  display: grid;
+  place-items: center;
+  background: none;
+  color: white;
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  border: 0;
+}
+@media print {
+  .android-update {
+    display: none;
+  }
+}

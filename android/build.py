@@ -1,10 +1,12 @@
 """Build the online APK using the official Android SDK tools and a local signing key."""
 import os
+import json
 import shutil
 import subprocess
 import tempfile
 import zipfile
 from pathlib import Path
+from xml.etree import ElementTree
 
 ROOT = Path(__file__).resolve().parents[1]
 ANDROID = ROOT / "android"
@@ -48,6 +50,13 @@ def build(stage):
     run(TOOLS / "zipalign", "-c", "-p", "4", signed)
     DEST.parent.mkdir(parents=True, exist_ok=True)
     shutil.copyfile(signed, DEST)
+    manifest = ElementTree.parse(ANDROID / "AndroidManifest.xml").getroot()
+    namespace = "{http://schemas.android.com/apk/res/android}"
+    release = {
+        "versionCode": int(manifest.attrib[namespace + "versionCode"]),
+        "versionName": manifest.attrib[namespace + "versionName"],
+    }
+    DEST.with_name("android-release.json").write_text(json.dumps(release, indent=2) + "\n")
     print(DEST)
 
 

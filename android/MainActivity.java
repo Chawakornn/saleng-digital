@@ -2,6 +2,10 @@ package app.salengdigital.demo;
 
 import android.app.Activity;
 import android.app.AlertDialog;
+import android.app.DownloadManager;
+import android.content.pm.PackageManager;
+import android.os.Build;
+import android.os.Environment;
 import android.content.ActivityNotFoundException;
 import android.content.Intent;
 import android.graphics.Color;
@@ -130,6 +134,41 @@ public final class MainActivity extends Activity {
     }
 
     private final class DeviceActions {
+        @JavascriptInterface public int getVersionCode() {
+            try {
+                return getPackageManager().getPackageInfo(getPackageName(), 0).versionCode;
+            } catch (PackageManager.NameNotFoundException e) { return 0; }
+        }
+
+        @JavascriptInterface public String downloadUpdate(int version) {
+            if (version <= getVersionCode()) return "current";
+            Uri apk = Uri.parse(START + "downloads/saleng-digital.apk?v=" + version);
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                try {
+                    DownloadManager downloads = (DownloadManager) getSystemService(DOWNLOAD_SERVICE);
+                    DownloadManager.Request request = new DownloadManager.Request(apk);
+                    request.setTitle("Trash 2 cash");
+                    request.setMimeType("application/vnd.android.package-archive");
+                    request.setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED);
+                    request.setDestinationInExternalPublicDir(Environment.DIRECTORY_DOWNLOADS,
+                        "Trash-2-cash-" + version + "-" + System.currentTimeMillis() + ".apk");
+                    downloads.enqueue(request);
+                    return "queued";
+                } catch (RuntimeException e) { /* Use the system browser if Downloads is unavailable. */ }
+            }
+            try {
+                startActivity(new Intent(Intent.ACTION_VIEW, apk).addCategory(Intent.CATEGORY_BROWSABLE));
+                return "browser";
+            } catch (ActivityNotFoundException | SecurityException e) { return "manual"; }
+        }
+
+        @JavascriptInterface public void openDownloads() {
+            runOnUiThread(() -> {
+                try { startActivity(new Intent(DownloadManager.ACTION_VIEW_DOWNLOADS)); }
+                catch (ActivityNotFoundException | SecurityException e) { message("เปิดแอปไฟล์ แล้วเลือกดาวน์โหลด"); }
+            });
+        }
+
         @JavascriptInterface public void printPage() {
             runOnUiThread(() -> {
                 PrintManager manager = (PrintManager) getSystemService(PRINT_SERVICE);

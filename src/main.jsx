@@ -5,10 +5,19 @@ import { Login } from "./pages/Login.jsx";
 import { Introduction } from "./pages/Introduction.jsx";
 import { Workspace } from "./pages/Workspace.jsx";
 import "./account.css";
+import { AndroidUpdate } from "./ui/AndroidUpdate.jsx";
 
 const root = createRoot(document.getElementById("root"));
 const params = new URLSearchParams(location.search);
 const android = window.SalengAndroid;
+function renderPage(page) {
+  root.render(
+    <>
+      <AndroidUpdate />
+      {page}
+    </>,
+  );
+}
 if (android) window.print = () => android.printPage();
 if (import.meta.env.PROD && "serviceWorker" in navigator) {
   window.addEventListener("load", () =>
@@ -118,11 +127,11 @@ async function startApp() {
     if (params.has("intro")) {
       const response = await fetch("/api/catalog", { cache: "no-store" });
       if (!response.ok) throw Error("connection");
-      root.render(
+      renderPage(
         <Introduction state={await response.json()} signed={!!state.user} />,
       );
     } else if (state.user) {
-      root.render(
+      renderPage(
         <Workspace
           initial={state}
           view={params.get("view") || "home"}
@@ -130,10 +139,10 @@ async function startApp() {
         />,
       );
     } else {
-      root.render(<Login />);
+      renderPage(<Login />);
     }
   } catch {
-    root.render(
+    renderPage(
       <main className="connection-state">
         <img src="/icon.svg" width="48" alt="" />
         <h1>เชื่อมต่อไม่ได้</h1>

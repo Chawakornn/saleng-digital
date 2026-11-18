@@ -11,6 +11,7 @@ import {
   weightField,
 } from "../ui/shared.jsx";
 import { Fragment } from "react";
+import { CheckAndroidUpdate } from "../ui/AndroidUpdate.jsx";
 import { UserRound } from "lucide-react";
 function Profile({ s: state, post: submitAction, logoutControl }) {
   let a = state.user,
@@ -87,6 +88,7 @@ function Profile({ s: state, post: submitAction, logoutControl }) {
           </ActionForm>
         </details>
       )}
+      <CheckAndroidUpdate />
       {logoutControl}
     </div>
   );
