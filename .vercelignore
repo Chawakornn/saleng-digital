@@ -1,6 +1,7 @@
 .git
 .android-signing
 .vercel
+.env*
 android
 node_modules
 dist

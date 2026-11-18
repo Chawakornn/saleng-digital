@@ -1,5 +1,7 @@
 # ซาเล้งดิจิทัล · Trash to Cash
 
+[เปิดเว็บ Saleng Digital](https://saleng-digital.vercel.app/) · [ดาวน์โหลด APK สำหรับ Android](https://saleng-digital.vercel.app/downloads/saleng-digital.apk)
+
 โปรเจกต์ React + Vite สำหรับทดลองนัดขายวัสดุรีไซเคิลในชุมชน สร้างจากหน้าเว็บและไฟล์ที่เบราว์เซอร์ของ [เว็บเดโมซาเล้งดิจิทัล](https://saleng-digital-try.vividwasp4096.chatgpt.site/) ใช้งานจริง โดยถอดหน้าจอออกเป็น JSX และแยกโค้ดฐานข้อมูลออกจากหน้าจอ ชื่อไฟล์ คอมโพเนนต์ และโครงสร้างโฟลเดอร์จัดขึ้นใหม่สำหรับพัฒนาต่อใน VS Code
 
 ## เปิดบนเครื่อง

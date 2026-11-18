@@ -6,3 +6,4 @@ dist/
 *.jks
 *.p12
 *.idsig
+.env*
