@@ -15,6 +15,8 @@ import {
 import {
   Bell,
   CalendarDays,
+  ChevronRight,
+  Wallet,
   ChartColumn,
   CircleQuestionMark,
   ClipboardList,
@@ -381,36 +383,49 @@ function Workspace({ initial, view: firstView, id: firstId }) {
         {view === "home" && (
           <Fragment>
             <Dashboard state={state} />
-            <div className="metrics">
-              <div className="metric">
-                รอบรับซื้อ<b>{state.rounds.length}</b>
-              </div>
-              <div className="metric">
-                รายการขาย<b>{state.bookings.length}</b>
-              </div>
-              <div className="metric">
-                {isSeller ? "ยอดรับเงินจริง" : "รายการที่จบแล้ว"}
-                <b>
-                  {isSeller
-                    ? "฿" +
-                      formatMoney(
-                        state.bookings.reduce(
-                          (S, B) => S + (B.receipt ? B.payment.amount : 0),
-                          0,
-                        ),
-                      )
-                    : state.bookings.filter((S) => S.receipt).length}
-                </b>
-              </div>
-            </div>
-            <h2>รายการล่าสุด</h2>
-            {state.bookings.length ? (
-              recordList
-            ) : (
-              <div className="panel">
-                <EmptyState>รายการขายจะแสดงที่นี่เมื่อมีการจองครั้งแรก</EmptyState>
-              </div>
-            )}
+            <nav className="home-shortcuts" aria-label="ทางลัดภาพรวม">
+              <SiteLink href={viewUrl("rounds")}>
+                <CalendarDays size={20} aria-hidden="true" />
+                <span>รอบรับซื้อ<strong>{state.rounds.length}</strong></span>
+              </SiteLink>
+              <SiteLink href={viewUrl("reports")}>
+                <Wallet size={20} aria-hidden="true" />
+                <span>{isSeller ? "ยอดรับเงินจริง" : "รายการที่จบแล้ว"}
+                  <strong>{isSeller
+                    ? "฿" + formatMoney(state.bookings.reduce((sum, booking) =>
+                        sum + (booking.receipt ? booking.payment.amount : 0), 0))
+                    : state.bookings.filter((booking) => booking.receipt).length}</strong>
+                </span>
+              </SiteLink>
+              <SiteLink className="price-shortcut" href={viewUrl("materials")}>
+                <Leaf size={20} aria-hidden="true" />
+                <span>เช็กราคาและคำนวณยอดขาย</span>
+                <ChevronRight size={17} aria-hidden="true" />
+              </SiteLink>
+            </nav>
+            <section className="home-history">
+              <header>
+                <h2>รายการขายล่าสุด</h2>
+                {state.bookings.length > 0 && (
+                  <SiteLink href={viewUrl("bookings")}>ดูทั้งหมด ({state.bookings.length}) <ChevronRight size={15} /></SiteLink>
+                )}
+              </header>
+              {state.bookings.length ? state.bookings.slice(0, 3).map((booking) => (
+                <SiteLink className="home-record" href={viewUrl("booking", booking.id)} key={booking.id}>
+                  <span><strong>{booking.code}</strong>
+                    <small>{isSeller ? (booking.receipt ? "รับเงินแล้ว" : "ยอดประมาณ") : booking.sellerName}
+                      {" · ฿"}{formatMoney(booking.receipt ? booking.payment.amount : booking.estimated)}</small>
+                  </span>
+                  <StatusBadge value={booking.status} />
+                  <ChevronRight size={16} aria-hidden="true" />
+                </SiteLink>
+              )) : (
+                <div className="history-empty">
+                  <ClipboardList size={24} aria-hidden="true" />
+                  <p>ยังไม่มีรายการขาย<small>เมื่อมีการจองครั้งแรก ติดตามสถานะได้ที่นี่</small></p>
+                </div>
+              )}
+            </section>
           </Fragment>
         )}
         {["bookings", "disputes", "rounds"].includes(view) && (
@@ -465,15 +480,14 @@ function Workspace({ initial, view: firstView, id: firstId }) {
         {view === "materials" && (
           <Fragment>
             <p>
-              ราคาอ้างอิง{state.demo ? "สำหรับสาธิต" : ""}
-              {" · "}
+              แตะวัสดุเพื่อคำนวณยอดขายโดยประมาณและดูวิธีคัดแยก{state.demo ? " (ราคาสาธิต)" : ""}{" "}
               {
                 state.communities.find((S) => S.id === state.user.communityId)
                   ?.guide
               }
             </p>
             {state.materials.length ? (
-              <MaterialCards s={state} />
+              <MaterialCards s={state} estimate />
             ) : (
               <EmptyState>ชุมชนยังไม่ได้เพิ่มวัสดุและราคาอ้างอิง</EmptyState>
             )}

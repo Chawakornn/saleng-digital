@@ -84,6 +84,21 @@ export function Login() {
           <p>
             {signup ? "เริ่มต้นในบทบาทผู้ขายวัสดุ" : "เปิดรายการนัดและติดตามยอดขายของคุณ"}
           </p>
+          <fieldset className="auth-mode" disabled={busy}>
+            <legend className="visually-hidden">เลือกวิธีเข้าใช้งาน</legend>
+            {[false, true].map((register) => (
+              <label key={String(register)}>
+                <input type="radio" name="auth-mode" checked={signup === register}
+                  onChange={() => {
+                    setSignup(register);
+                    setVisible(false);
+                    setError("");
+                  }}
+                />
+                <span>{register ? "สมัครสมาชิก" : "เข้าสู่ระบบ"}</span>
+              </label>
+            ))}
+          </fieldset>
           <form onSubmit={submit} key={signup ? "register" : "login"}>
             {signup && (
               <label>
@@ -146,19 +161,6 @@ export function Login() {
               )}
             </button>
           </form>
-          <p className="switch-account">
-            {signup ? "มีบัญชีอยู่แล้ว?" : "ยังไม่มีบัญชี?"}{" "}
-            <button
-              disabled={busy}
-              onClick={() => {
-                setSignup(!signup);
-                setVisible(false);
-                setError("");
-              }}
-            >
-              {signup ? "เข้าสู่ระบบ" : "สมัครสมาชิก"}
-            </button>
-          </p>
           {legacy && (
             <button className="legacy-clear" onClick={clearLegacy}>
               ล้างข้อมูลสาธิตเดิมในเครื่องนี้

@@ -38,13 +38,16 @@ public final class UpdateActivity extends Activity {
     private ProgressBar progress;
     private Button retry;
 
-    static void cleanInstalledDownload(Context context) {
+    static String finishInstalledUpdate(Context context) {
         SharedPreferences state = context.getSharedPreferences(STORE, MODE_PRIVATE);
-        if (!state.contains(DOWNLOAD)) return;
+        if (!state.contains(DOWNLOAD)) return null;
         try {
-            int installed = context.getPackageManager().getPackageInfo(context.getPackageName(), 0).versionCode;
-            if (state.getInt(VERSION, 0) <= installed) clearDownload(context);
+            PackageInfo installed = context.getPackageManager().getPackageInfo(context.getPackageName(), 0);
+            int requested = state.getInt(VERSION, 0);
+            if (requested <= installed.versionCode) clearDownload(context);
+            if (requested == installed.versionCode) return installed.versionName;
         } catch (PackageManager.NameNotFoundException ignored) { }
+        return null;
     }
 
     private static void clearDownload(Context context) {

@@ -59,7 +59,9 @@ export function AndroidUpdate() {
           sessionStorage.getItem(deferKey) === String(next.versionCode);
         if (installed >= next.versionCode || deferred) {
           setRelease(null);
-          if (userRequested) setMessage("คุณใช้แอปรุ่นล่าสุดแล้ว");
+          if (userRequested) setMessage(installed === next.versionCode
+            ? "คุณใช้แอปรุ่นล่าสุด " + next.versionName + " แล้ว"
+            : "คุณใช้แอปรุ่นล่าสุดแล้ว");
         } else {
           if (lastVersion.current !== next.versionCode || userRequested)
             setStep("offer");

@@ -1,5 +1,5 @@
 import { SiteLink } from "./Link.jsx";
-import { ArrowUpRight, Leaf, Recycle } from "lucide-react";
+import { ChevronDown, Leaf, Recycle } from "lucide-react";
 import { useEffect, useState, useRef } from "react";
 var labels = {
     DRAFT: "ฉบับร่าง",
@@ -89,28 +89,51 @@ function EmptyState({ children }) {
     </div>
   );
 }
-function MaterialCards({ s: state }) {
+function estimatedMaterialAmount(grams, price) {
+  return Math.floor((grams * price + 500) / 1000);
+}
+
+function MaterialEstimate({ material }) {
+  const [weight, setWeight] = useState({ kg: null, valid: true });
+  const grams = weight.kg === null ? null : Math.round(weight.kg * 1000);
+  return (
+    <div className="material-estimate">
+      <label>น้ำหนักที่คาดว่าจะขาย (กก.)
+        <input type="number" inputMode="decimal" min="0" max="100000" step="0.001"
+          placeholder="เช่น 2.5" aria-invalid={!weight.valid}
+          onChange={({ currentTarget }) => setWeight({
+            kg: currentTarget.value === "" ? null : currentTarget.valueAsNumber,
+            valid: currentTarget.validity.valid,
+          })}
+        />
+      </label>
+      <output aria-live="polite">
+        {weight.valid
+          ? <>ยอดประมาณ <strong>{grams === null ? "—" : "฿" + formatMoney(estimatedMaterialAmount(grams, material.price))}</strong></>
+          : "ระบุ 0–100,000 กก. ทศนิยมได้ถึง 3 ตำแหน่ง"}
+      </output>
+    </div>
+  );
+}
+
+function MaterialCards({ s: state, estimate = false }) {
   return (
     <div className="matgrid">
-      {state.materials.map((t) => (
-        <details className="material" key={t.id}>
+      {state.materials.map((material) => (
+        <details className="material" key={material.id}>
           <summary>
-            <span className={"matart " + t.art}>
-              <img src={"/art/" + t.art + ".svg"} alt="" />
+            <span className={"matart " + material.art}>
+              <img src={"/art/" + material.art + ".svg"} alt="" />
             </span>
             <span className="matmain">
-              <strong>{t.name}</strong>
-              <span className="price">
-                ฿{formatMoney(t.price)} <small>/ กก.</small>
-              </span>
+              <strong>{material.name}</strong>
+              <span className="price">฿{formatMoney(material.price)} <small>/ กก.</small></span>
             </span>
-            <ArrowUpRight size={16} />
+            <ChevronDown className="material-chevron" size={18} aria-hidden="true" />
           </summary>
-          <p>{t.guide}</p>
-          <small>
-            {"ปรับราคา "}
-            {formatDate(t.updated)}
-          </small>
+          {estimate && <MaterialEstimate material={material} />}
+          <p>{material.guide}</p>
+          <small>ปรับราคา {formatDate(material.updated)}</small>
         </details>
       ))}
     </div>
@@ -264,6 +287,7 @@ function Footer() {
 export {
   EmptyState,
   formatMoney,
+  estimatedMaterialAmount,
   formatWeight,
   formatDateTime,
   ActionForm,

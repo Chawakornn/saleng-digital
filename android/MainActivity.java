@@ -74,7 +74,8 @@ public final class MainActivity extends Activity {
         });
         if (state != null) pendingCsv = state.getString("pendingCsv");
         if (state == null || web.restoreState(state) == null || !isLocal(Uri.parse(String.valueOf(web.getUrl())))) web.loadUrl(START);
-        UpdateActivity.cleanInstalledDownload(this);
+        String updated = UpdateActivity.finishInstalledUpdate(this);
+        if (updated != null) message("อัปเดตเป็น " + updated + " แล้ว");
         offerLegacyCleanup();
     }
 

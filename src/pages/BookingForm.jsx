@@ -3,6 +3,7 @@ import {
   ActionForm,
   EmptyState,
   formatDateTime,
+  estimatedMaterialAmount,
   formatMoney,
   formatWeight,
   viewUrl,
@@ -74,7 +75,7 @@ function BookingForm({
         price: _.price,
       })),
     estimatedAmount = items.reduce(
-      (_, O) => _ + Math.floor((O.grams * O.price + 500) / 1000),
+      (sum, item) => sum + estimatedMaterialAmount(item.grams, item.price),
       0,
     ),
     totalGrams = items.reduce((_, O) => _ + O.grams, 0);
