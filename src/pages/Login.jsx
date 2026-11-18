@@ -84,7 +84,7 @@ export function Login() {
           <p>
             {signup ? "เริ่มต้นในบทบาทผู้ขายวัสดุ" : "เปิดรายการนัดและติดตามยอดขายของคุณ"}
           </p>
-          <fieldset className="auth-mode" disabled={busy}>
+          <fieldset className="auth-mode" data-signup={signup} disabled={busy}>
             <legend className="visually-hidden">เลือกวิธีเข้าใช้งาน</legend>
             {[false, true].map((register) => (
               <label key={String(register)}>

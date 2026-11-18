@@ -258,13 +258,19 @@
 }
 @layer components,utilities;
 :root {
-  --ink: #19372b;
-  --green: #386a47;
-  --lime: #d6ee9a;
-  --paper: #f5f7f2;
-  --line: #d9dfd4;
+  --ink: #17353c;
+  --brand: #153f47;
+  --accent: #a8ebd7;
+  --muted: #475e64;
+  --mist: #e5f2ef;
+  --focus: #086a76;
+  --motion-ease: cubic-bezier(.22, .78, .25, 1);
+  --green: #16655c;
+  --lime: #d7eee8;
+  --paper: #faf8f3;
+  --line: #d8e1dc;
   color: var(--ink);
-  background: #fbfcf8;
+  background: var(--paper);
   font-family:
     Inter,
     Noto Sans Thai,
@@ -307,7 +313,25 @@ input:focus-visible,
 select:focus-visible,
 summary:focus-visible {
   outline-offset: 3px;
-  outline: 3px solid #619244;
+  outline: 3px solid var(--focus);
+}
+.boot-screen {
+  min-height: 100vh;
+  min-height: 100svh;
+  display: grid;
+  align-content: center;
+  justify-items: center;
+  gap: 14px;
+  background: var(--paper);
+  color: var(--muted);
+  font-size: 14px;
+}
+@media (prefers-reduced-motion: no-preference) {
+  .boot-screen img { animation: boot-mark .32s var(--motion-ease); }
+  @keyframes boot-mark {
+    from { opacity: .6; transform: scale(.92); }
+    to { opacity: 1; transform: scale(1); }
+  }
 }
 .wrap {
   width: min(1230px, 92%);
@@ -357,7 +381,7 @@ footer {
 .datarow small,
 .weightrow small,
 small {
-  color: #5d7061;
+  color: var(--muted);
   display: block;
 }
 .benefits,
@@ -382,7 +406,7 @@ small {
 .chips .chosen,
 .login,
 .primary {
-  background: var(--ink);
+  background: var(--brand);
   color: #fff;
 }
 .chips button,
@@ -391,7 +415,7 @@ small {
 }
 .login:hover,
 .primary:hover {
-  background: #315943;
+  background: #235860;
 }
 .textlink,
 .under {
@@ -410,7 +434,7 @@ small {
 .authart,
 .hero {
   border: 1px solid var(--line);
-  background: #f0f3df;
+  background: #f4ecdd;
   border-radius: 22px;
   overflow: hidden;
 }
@@ -439,7 +463,7 @@ small {
   line-height: 1.2;
 }
 .hero h1 span {
-  color: #507a40;
+  color: var(--green);
 }
 .hero p {
   margin: 0 0 25px;
@@ -456,7 +480,7 @@ small {
 .badge,
 .kicker,
 .soft {
-  background: #e8efdb;
+  background: var(--mist);
   border-radius: 20px;
   padding: 5px 12px;
   font-size: 13px;
@@ -469,7 +493,7 @@ small {
 .eyebrow i,
 .kicker i,
 .soft i {
-  background: #5a893b;
+  background: var(--green);
   border-radius: 50%;
   width: 7px;
   height: 7px;
@@ -518,7 +542,7 @@ h3 {
   line-height: 1.4;
 }
 p {
-  color: #536759;
+  color: var(--muted);
   margin: 6px 0 14px;
 }
 .matgrid,
@@ -542,17 +566,20 @@ p {
   padding: 14px;
 }
 .datarow,
-.material summary,
+.material-toggle,
 .weightrow {
   align-items: center;
   gap: 12px;
   display: flex;
 }
-.material summary {
-  list-style: none;
+.material-toggle {
+  width: 100%;
+  padding: 0;
+  border: 0;
+  text-align: start;
 }
 .matart {
-  background: #f0f3e9;
+  background: #f3f1e8;
   border-radius: 10px;
   flex: none;
   width: 76px;
@@ -637,7 +664,7 @@ input,
 select,
 textarea {
   background: #fff;
-  border: 1px solid #bdcbbb;
+  border: 1px solid #adbfbb;
   border-radius: 8px;
   min-width: 0;
   max-width: 100%;
@@ -800,7 +827,7 @@ fieldset {
 .panel details .form {
   max-width: 640px;
 }
-.desk > .primary,
+.desk-view > .primary,
 .panel + .secondary {
   margin: 12px 0;
 }
@@ -815,7 +842,7 @@ dialog {
   inset: 0;
 }
 dialog::backdrop {
-  background: #19372b80;
+  background: #153f4766;
 }
 @media (max-width: 820px) {
   .matgrid {
@@ -983,7 +1010,7 @@ body {
 .datarow small,
 .weightrow small,
 small {
-  color: #415a49;
+  color: var(--muted);
   font-size: 0.9rem;
 }
 .eyebrow {
@@ -999,7 +1026,7 @@ select:focus-visible,
 summary:focus-visible,
 textarea:focus-visible {
   outline-offset: 3px;
-  outline: 3px solid #2568a4;
+  outline: 3px solid var(--focus);
 }
 .login,
 .primary,
@@ -1021,7 +1048,7 @@ summary {
   font-size: 1.125rem;
 }
 .heroart {
-  background: #edf1de;
+  background: #f4ecdd;
 }
 .heroart img {
   mix-blend-mode: multiply;
@@ -1049,7 +1076,7 @@ summary {
   font-size: clamp(1.4rem, 3vw, 2rem);
 }
 .apptqr {
-  background: #edf4e6;
+  background: var(--mist);
   border-radius: 12px;
   padding: 12px !important;
 }
@@ -1064,8 +1091,8 @@ summary {
   padding: 8px 0;
 }
 .radiocard:has(input:checked) {
-  background: #f1f6e9;
-  border: 2px solid #356446;
+  background: var(--mist);
+  border: 2px solid var(--green);
 }
 .stepbar [aria-current="step"] {
   text-underline-offset: 5px;
@@ -1091,7 +1118,7 @@ summary {
     z-index: 4;
     padding: 4px 4px max(4px, env(safe-area-inset-bottom));
     background: #fff;
-    border-top: 1px solid #ccd7c9;
+    border-top: 1px solid var(--line);
     grid-template-columns: repeat(4, minmax(0, 1fr));
     display: grid;
     position: fixed;

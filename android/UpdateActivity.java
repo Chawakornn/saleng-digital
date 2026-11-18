@@ -79,11 +79,11 @@ public final class UpdateActivity extends Activity {
         panel.setGravity(Gravity.CENTER_VERTICAL);
         int padding = (int)(28 * getResources().getDisplayMetrics().density);
         panel.setPadding(padding, padding, padding, padding);
-        panel.setBackgroundColor(Color.rgb(247, 248, 244));
+        panel.setBackgroundColor(Color.rgb(250, 248, 243));
         TextView title = new TextView(this);
         title.setText("อัปเดต Trash 2 cash");
         title.setTextSize(24);
-        title.setTextColor(Color.rgb(25, 55, 43));
+        title.setTextColor(Color.rgb(21, 63, 71));
         panel.addView(title);
         status = new TextView(this);
         status.setPadding(0, padding / 2, 0, padding / 2);
@@ -91,6 +91,9 @@ public final class UpdateActivity extends Activity {
         status.setAccessibilityLiveRegion(View.ACCESSIBILITY_LIVE_REGION_POLITE);
         panel.addView(status);
         progress = new ProgressBar(this, null, android.R.attr.progressBarStyleHorizontal);
+        android.content.res.ColorStateList teal = android.content.res.ColorStateList.valueOf(Color.rgb(22, 101, 92));
+        progress.setProgressTintList(teal);
+        progress.setIndeterminateTintList(teal);
         progress.setIndeterminate(true);
         panel.addView(progress);
         retry = new Button(this);
@@ -136,7 +139,7 @@ public final class UpdateActivity extends Activity {
                 long total = row.getLong(row.getColumnIndexOrThrow(DownloadManager.COLUMN_TOTAL_SIZE_BYTES));
                 long done = row.getLong(row.getColumnIndexOrThrow(DownloadManager.COLUMN_BYTES_DOWNLOADED_SO_FAR));
                 progress.setIndeterminate(total <= 0);
-                if (total > 0) progress.setProgress((int)(done * 100 / total));
+                if (total > 0) progress.setProgress((int)(done * 100 / total), true);
             }
             handler.postDelayed(check, 600);
         } catch (RuntimeException e) {

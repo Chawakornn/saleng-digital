@@ -32,7 +32,7 @@ public final class MainActivity extends Activity {
     @Override public void onCreate(Bundle state) {
         super.onCreate(state);
         FrameLayout frame = new FrameLayout(this);
-        frame.setBackgroundColor(Color.rgb(25, 55, 43));
+        frame.setBackgroundColor(Color.rgb(21, 63, 71));
         frame.setFitsSystemWindows(true);
         setContentView(frame);
         web = new WebView(this);
@@ -88,7 +88,7 @@ public final class MainActivity extends Activity {
         LinearLayout box = new LinearLayout(this);
         box.setOrientation(LinearLayout.VERTICAL);
         box.setGravity(Gravity.CENTER);
-        box.setBackgroundColor(Color.rgb(247,248,244));
+        box.setBackgroundColor(Color.rgb(250,248,243));
         TextView title = new TextView(this);
         title.setText("เชื่อมต่อ Trash 2 cash ไม่ได้");
         title.setTextSize(22);

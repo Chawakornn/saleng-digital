@@ -1,6 +1,6 @@
 import { SiteLink } from "./Link.jsx";
 import { ChevronDown, Leaf, Recycle } from "lucide-react";
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useId, useState, useRef } from "react";
 var labels = {
     DRAFT: "ฉบับร่าง",
     OPEN: "เปิดรับจอง",
@@ -71,6 +71,7 @@ function BrandLink() {
 function StatusBadge({ value }) {
   return (
     <span
+      data-status={value}
       className={
         "badge " +
         (["DISPUTED", "CANCELLED", "NO_SHOW"].includes(value) ? "bad" : "")
@@ -116,25 +117,38 @@ function MaterialEstimate({ material }) {
   );
 }
 
+function MaterialCard({ material, estimate }) {
+  const [open, setOpen] = useState(false);
+  const contentId = useId();
+  return (
+    <article className="material" data-open={open}>
+      <button type="button" className="material-toggle" aria-expanded={open}
+        aria-controls={contentId} onClick={() => setOpen(!open)}>
+        <span className={"matart " + material.art}>
+          <img src={"/art/" + material.art + ".svg"} alt="" />
+        </span>
+        <span className="matmain">
+          <strong>{material.name}</strong>
+          <span className="price">฿{formatMoney(material.price)} <small>/ กก.</small></span>
+        </span>
+        <ChevronDown className="material-chevron" size={18} aria-hidden="true" />
+      </button>
+      <div id={contentId} className="material-collapse" inert={!open} aria-hidden={!open}>
+        <div>
+          {estimate && <MaterialEstimate material={material} />}
+          <p>{material.guide}</p>
+          <small>ปรับราคา {formatDate(material.updated)}</small>
+        </div>
+      </div>
+    </article>
+  );
+}
+
 function MaterialCards({ s: state, estimate = false }) {
   return (
     <div className="matgrid">
       {state.materials.map((material) => (
-        <details className="material" key={material.id}>
-          <summary>
-            <span className={"matart " + material.art}>
-              <img src={"/art/" + material.art + ".svg"} alt="" />
-            </span>
-            <span className="matmain">
-              <strong>{material.name}</strong>
-              <span className="price">฿{formatMoney(material.price)} <small>/ กก.</small></span>
-            </span>
-            <ChevronDown className="material-chevron" size={18} aria-hidden="true" />
-          </summary>
-          {estimate && <MaterialEstimate material={material} />}
-          <p>{material.guide}</p>
-          <small>ปรับราคา {formatDate(material.updated)}</small>
-        </details>
+        <MaterialCard key={material.id} material={material} estimate={estimate} />
       ))}
     </div>
   );

@@ -351,7 +351,7 @@ function Workspace({ initial, view: firstView, id: firstId }) {
           {logoutControl}
         </div>
       </dialog>
-      <main className="desk" key={view + "-" + id}>
+      <main className="desk">
         <header className="deskhead">
           <button
             aria-label={menuOpen ? "ปิดเมนู" : "เปิดเมนูเพิ่มเติม"}
@@ -376,178 +376,180 @@ function Workspace({ initial, view: firstView, id: firstId }) {
             {refreshError ? "รอเชื่อมต่อ" : "ซิงก์อัตโนมัติ"}
           </span>
         </header>
-        <h1 ref={pageHeading} tabIndex={-1}>
-          {heading}
-        </h1>
-        {refreshError && <p role="alert">{refreshError}</p>}
-        {view === "home" && (
-          <Fragment>
-            <Dashboard state={state} />
-            <nav className="home-shortcuts" aria-label="ทางลัดภาพรวม">
-              <SiteLink href={viewUrl("rounds")}>
-                <CalendarDays size={20} aria-hidden="true" />
-                <span>รอบรับซื้อ<strong>{state.rounds.length}</strong></span>
-              </SiteLink>
-              <SiteLink href={viewUrl("reports")}>
-                <Wallet size={20} aria-hidden="true" />
-                <span>{isSeller ? "ยอดรับเงินจริง" : "รายการที่จบแล้ว"}
-                  <strong>{isSeller
-                    ? "฿" + formatMoney(state.bookings.reduce((sum, booking) =>
-                        sum + (booking.receipt ? booking.payment.amount : 0), 0))
-                    : state.bookings.filter((booking) => booking.receipt).length}</strong>
-                </span>
-              </SiteLink>
-              <SiteLink className="price-shortcut" href={viewUrl("materials")}>
-                <Leaf size={20} aria-hidden="true" />
-                <span>เช็กราคาและคำนวณยอดขาย</span>
-                <ChevronRight size={17} aria-hidden="true" />
-              </SiteLink>
-            </nav>
-            <section className="home-history">
-              <header>
-                <h2>รายการขายล่าสุด</h2>
-                {state.bookings.length > 0 && (
-                  <SiteLink href={viewUrl("bookings")}>ดูทั้งหมด ({state.bookings.length}) <ChevronRight size={15} /></SiteLink>
-                )}
-              </header>
-              {state.bookings.length ? state.bookings.slice(0, 3).map((booking) => (
-                <SiteLink className="home-record" href={viewUrl("booking", booking.id)} key={booking.id}>
-                  <span><strong>{booking.code}</strong>
-                    <small>{isSeller ? (booking.receipt ? "รับเงินแล้ว" : "ยอดประมาณ") : booking.sellerName}
-                      {" · ฿"}{formatMoney(booking.receipt ? booking.payment.amount : booking.estimated)}</small>
-                  </span>
-                  <StatusBadge value={booking.status} />
-                  <ChevronRight size={16} aria-hidden="true" />
+        <div className="desk-view" key={view + "-" + id}>
+          <h1 ref={pageHeading} tabIndex={-1}>
+            {heading}
+          </h1>
+          {refreshError && <p role="alert">{refreshError}</p>}
+          {view === "home" && (
+            <Fragment>
+              <Dashboard state={state} />
+              <nav className="home-shortcuts" aria-label="ทางลัดภาพรวม">
+                <SiteLink href={viewUrl("rounds")}>
+                  <CalendarDays size={20} aria-hidden="true" />
+                  <span>รอบรับซื้อ<strong>{state.rounds.length}</strong></span>
                 </SiteLink>
-              )) : (
-                <div className="history-empty">
-                  <ClipboardList size={24} aria-hidden="true" />
-                  <p>ยังไม่มีรายการขาย<small>เมื่อมีการจองครั้งแรก ติดตามสถานะได้ที่นี่</small></p>
-                </div>
+                <SiteLink href={viewUrl("reports")}>
+                  <Wallet size={20} aria-hidden="true" />
+                  <span>{isSeller ? "ยอดรับเงินจริง" : "รายการที่จบแล้ว"}
+                    <strong>{isSeller
+                      ? "฿" + formatMoney(state.bookings.reduce((sum, booking) =>
+                          sum + (booking.receipt ? booking.payment.amount : 0), 0))
+                      : state.bookings.filter((booking) => booking.receipt).length}</strong>
+                  </span>
+                </SiteLink>
+                <SiteLink className="price-shortcut" href={viewUrl("materials")}>
+                  <Leaf size={20} aria-hidden="true" />
+                  <span>เช็กราคาและคำนวณยอดขาย</span>
+                  <ChevronRight size={17} aria-hidden="true" />
+                </SiteLink>
+              </nav>
+              <section className="home-history">
+                <header>
+                  <h2>รายการขายล่าสุด</h2>
+                  {state.bookings.length > 0 && (
+                    <SiteLink href={viewUrl("bookings")}>ดูทั้งหมด ({state.bookings.length}) <ChevronRight size={15} /></SiteLink>
+                  )}
+                </header>
+                {state.bookings.length ? state.bookings.slice(0, 3).map((booking) => (
+                  <SiteLink className="home-record" href={viewUrl("booking", booking.id)} key={booking.id}>
+                    <span><strong>{booking.code}</strong>
+                      <small>{isSeller ? (booking.receipt ? "รับเงินแล้ว" : "ยอดประมาณ") : booking.sellerName}
+                        {" · ฿"}{formatMoney(booking.receipt ? booking.payment.amount : booking.estimated)}</small>
+                    </span>
+                    <StatusBadge value={booking.status} />
+                    <ChevronRight size={16} aria-hidden="true" />
+                  </SiteLink>
+                )) : (
+                  <div className="history-empty">
+                    <ClipboardList size={24} aria-hidden="true" />
+                    <p>ยังไม่มีรายการขาย<small>เมื่อมีการจองครั้งแรก ติดตามสถานะได้ที่นี่</small></p>
+                  </div>
+                )}
+              </section>
+            </Fragment>
+          )}
+          {["bookings", "disputes", "rounds"].includes(view) && (
+            <Fragment>
+              {showingRounds && canManage && (
+                <SiteLink
+                  prefetch={false}
+                  className="primary"
+                  href={viewUrl("create")}
+                >
+                  สร้างรอบรับซื้อ
+                </SiteLink>
+              )}
+              {recordList}
+              <a download={true} className="secondary" href="/api/export">
+                ดาวน์โหลด CSV
+              </a>
+            </Fragment>
+          )}
+          {view === "create" && canManage && (
+            <section className="panel">
+              <RoundForm s={state} post={submitAction} />
+            </section>
+          )}
+          {view === "round" && (
+            <RoundDetail s={state} r={selectedRound} post={submitAction} />
+          )}
+          {["new", "edit"].includes(view) && (
+            <BookingForm
+              s={state}
+              post={submitAction}
+              old={view === "edit" ? selectedBooking : void 0}
+              initialRound={id}
+            />
+          )}
+          {["booking", "print"].includes(view) && (
+            <BookingDetail
+              s={state}
+              b={selectedBooking}
+              post={submitAction}
+              print={view === "print"}
+            />
+          )}
+          {["reports", "fees", "invoice"].includes(view) && (
+            <Reports
+              s={state}
+              post={submitAction}
+              fees={view === "fees"}
+              documentId={view === "invoice" ? id : 0}
+            />
+          )}
+          {view === "materials" && (
+            <Fragment>
+              <p>
+                แตะวัสดุเพื่อคำนวณยอดขายโดยประมาณและดูวิธีคัดแยก{state.demo ? " (ราคาสาธิต)" : ""}{" "}
+                {
+                  state.communities.find((S) => S.id === state.user.communityId)
+                    ?.guide
+                }
+              </p>
+              {state.materials.length ? (
+                <MaterialCards s={state} estimate />
+              ) : (
+                <EmptyState>ชุมชนยังไม่ได้เพิ่มวัสดุและราคาอ้างอิง</EmptyState>
+              )}
+            </Fragment>
+          )}
+          {view === "profile" && (
+            <Profile
+              s={state}
+              post={submitAction}
+              logoutControl={logoutControl}
+            />
+          )}
+          {view === "manage" && <Management s={state} post={submitAction} />}
+          {view === "notices" && (
+            <section className="panel">
+              {state.notices.length ? (
+                state.notices.map((S) => (
+                  <div className="datarow" key={S.id}>
+                    {S.message}
+                    <small>
+                      {formatDateTime(S.at)}
+                      {" · "}
+                      {S.seen ? "อ่านแล้ว" : "ใหม่"}
+                    </small>
+                  </div>
+                ))
+              ) : (
+                <EmptyState>ยังไม่มีการแจ้งเตือน</EmptyState>
+              )}
+              {state.notices.some((S) => !S.seen) && (
+                <ActionForm
+                  label="ทำเครื่องหมายว่าอ่านทั้งหมด"
+                  submit={() => submitAction("read")}
+                />
               )}
             </section>
-          </Fragment>
-        )}
-        {["bookings", "disputes", "rounds"].includes(view) && (
-          <Fragment>
-            {showingRounds && canManage && (
-              <SiteLink
-                prefetch={false}
-                className="primary"
-                href={viewUrl("create")}
-              >
-                สร้างรอบรับซื้อ
+          )}
+          {view === "help" && (
+            <section className="panel">
+              <h2>วิธีใช้งาน</h2>
+              <h3>บัญชีและการซิงก์</h3>
+              <p>
+                เข้าสู่ระบบด้วยชื่อผู้ใช้เดิมบนมือถือหรือคอมเพื่อเปิดรายการของคุณ
+                หน้าที่เปิดอยู่ตรวจข้อมูลใหม่ทุกประมาณ 3.5 วินาทีเมื่อเชื่อมต่ออินเทอร์เน็ต
+              </p>
+              <h3>รอบรับซื้อและการจอง</h3>
+              <p>
+                ลูกบ้านเลือกวัสดุและจองรอบ ร้านตอบรับงานและผู้ดูแลยืนยันนัด
+                เมื่อถึงจุดรับให้แสดงรหัสนัด ตรวจผลชั่ง และยืนยันเมื่อได้รับเงินจริง
+              </p>
+              <h3>ตั้งค่าชุมชน</h3>
+              <p>
+                ผู้ดูแลระบบเปิดเมนูจัดการข้อมูลเพื่อเพิ่มจุดรวมวัสดุ ตั้งราคา และกำหนดสิทธิ์สมาชิก
+                จากนั้นผู้ดูแลชุมชนเปิดรอบพร้อมระบุวัน เวลา และความจุ ร้านรับซื้อยื่นคำขอได้ในหน้าบัญชี
+              </p>
+              <SiteLink prefetch={false} className="under" href="/#help">
+                อ่านคำถามที่พบบ่อย
               </SiteLink>
-            )}
-            {recordList}
-            <a download={true} className="secondary" href="/api/export">
-              ดาวน์โหลด CSV
-            </a>
-          </Fragment>
-        )}
-        {view === "create" && canManage && (
-          <section className="panel">
-            <RoundForm s={state} post={submitAction} />
-          </section>
-        )}
-        {view === "round" && (
-          <RoundDetail s={state} r={selectedRound} post={submitAction} />
-        )}
-        {["new", "edit"].includes(view) && (
-          <BookingForm
-            s={state}
-            post={submitAction}
-            old={view === "edit" ? selectedBooking : void 0}
-            initialRound={id}
-          />
-        )}
-        {["booking", "print"].includes(view) && (
-          <BookingDetail
-            s={state}
-            b={selectedBooking}
-            post={submitAction}
-            print={view === "print"}
-          />
-        )}
-        {["reports", "fees", "invoice"].includes(view) && (
-          <Reports
-            s={state}
-            post={submitAction}
-            fees={view === "fees"}
-            documentId={view === "invoice" ? id : 0}
-          />
-        )}
-        {view === "materials" && (
-          <Fragment>
-            <p>
-              แตะวัสดุเพื่อคำนวณยอดขายโดยประมาณและดูวิธีคัดแยก{state.demo ? " (ราคาสาธิต)" : ""}{" "}
-              {
-                state.communities.find((S) => S.id === state.user.communityId)
-                  ?.guide
-              }
-            </p>
-            {state.materials.length ? (
-              <MaterialCards s={state} estimate />
-            ) : (
-              <EmptyState>ชุมชนยังไม่ได้เพิ่มวัสดุและราคาอ้างอิง</EmptyState>
-            )}
-          </Fragment>
-        )}
-        {view === "profile" && (
-          <Profile
-            s={state}
-            post={submitAction}
-            logoutControl={logoutControl}
-          />
-        )}
-        {view === "manage" && <Management s={state} post={submitAction} />}
-        {view === "notices" && (
-          <section className="panel">
-            {state.notices.length ? (
-              state.notices.map((S) => (
-                <div className="datarow" key={S.id}>
-                  {S.message}
-                  <small>
-                    {formatDateTime(S.at)}
-                    {" · "}
-                    {S.seen ? "อ่านแล้ว" : "ใหม่"}
-                  </small>
-                </div>
-              ))
-            ) : (
-              <EmptyState>ยังไม่มีการแจ้งเตือน</EmptyState>
-            )}
-            {state.notices.some((S) => !S.seen) && (
-              <ActionForm
-                label="ทำเครื่องหมายว่าอ่านทั้งหมด"
-                submit={() => submitAction("read")}
-              />
-            )}
-          </section>
-        )}
-        {view === "help" && (
-          <section className="panel">
-            <h2>วิธีใช้งาน</h2>
-            <h3>บัญชีและการซิงก์</h3>
-            <p>
-              เข้าสู่ระบบด้วยชื่อผู้ใช้เดิมบนมือถือหรือคอมเพื่อเปิดรายการของคุณ
-              หน้าที่เปิดอยู่ตรวจข้อมูลใหม่ทุกประมาณ 3.5 วินาทีเมื่อเชื่อมต่ออินเทอร์เน็ต
-            </p>
-            <h3>รอบรับซื้อและการจอง</h3>
-            <p>
-              ลูกบ้านเลือกวัสดุและจองรอบ ร้านตอบรับงานและผู้ดูแลยืนยันนัด
-              เมื่อถึงจุดรับให้แสดงรหัสนัด ตรวจผลชั่ง และยืนยันเมื่อได้รับเงินจริง
-            </p>
-            <h3>ตั้งค่าชุมชน</h3>
-            <p>
-              ผู้ดูแลระบบเปิดเมนูจัดการข้อมูลเพื่อเพิ่มจุดรวมวัสดุ ตั้งราคา และกำหนดสิทธิ์สมาชิก
-              จากนั้นผู้ดูแลชุมชนเปิดรอบพร้อมระบุวัน เวลา และความจุ ร้านรับซื้อยื่นคำขอได้ในหน้าบัญชี
-            </p>
-            <SiteLink prefetch={false} className="under" href="/#help">
-              อ่านคำถามที่พบบ่อย
-            </SiteLink>
-          </section>
-        )}
+            </section>
+          )}
+        </div>
       </main>
       <nav className="bottomnav" aria-label="ทางลัดบนมือถือ">
         {navigation
