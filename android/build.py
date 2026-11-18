@@ -35,7 +35,7 @@ def build(stage):
     run(TOOLS / "aapt2", "link", "-I", PLATFORM, "--manifest", ANDROID / "AndroidManifest.xml",
         "-R", stage / "res.zip", "-o", unsigned)
     run(JDK / "javac", "-encoding", "UTF-8", "--release", "8", "-cp", PLATFORM,
-        "-d", classes, ANDROID / "MainActivity.java")
+        "-d", classes, *sorted(ANDROID.glob("*.java")))
     run(JDK / "jar", "cf", stage / "classes.jar", "-C", classes, ".")
     run(JDK / "java", "-cp", TOOLS / "lib/d8.jar", "com.android.tools.r8.D8",
         "--min-api", "26", "--lib", PLATFORM, "--output", dex, stage / "classes.jar")

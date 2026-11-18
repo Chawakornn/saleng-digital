@@ -2,10 +2,7 @@ package app.salengdigital.demo;
 
 import android.app.Activity;
 import android.app.AlertDialog;
-import android.app.DownloadManager;
 import android.content.pm.PackageManager;
-import android.os.Build;
-import android.os.Environment;
 import android.content.ActivityNotFoundException;
 import android.content.Intent;
 import android.graphics.Color;
@@ -26,7 +23,7 @@ import android.widget.TextView;
 public final class MainActivity extends Activity {
     private static final String HOST = "saleng-digital.vercel.app";
     private static final String LEGACY = "https://appassets.androidplatform.net";
-    private static final String START = "https://" + HOST + "/";
+    static final String START = "https://" + HOST + "/";
     private static final int PICK_IMAGE = 1, SAVE_CSV = 2;
     private WebView web;
     private ValueCallback<Uri[]> imageResult;
@@ -77,6 +74,7 @@ public final class MainActivity extends Activity {
         });
         if (state != null) pendingCsv = state.getString("pendingCsv");
         if (state == null || web.restoreState(state) == null || !isLocal(Uri.parse(String.valueOf(web.getUrl())))) web.loadUrl(START);
+        UpdateActivity.cleanInstalledDownload(this);
         offerLegacyCleanup();
     }
 
@@ -142,31 +140,9 @@ public final class MainActivity extends Activity {
 
         @JavascriptInterface public String downloadUpdate(int version) {
             if (version <= getVersionCode()) return "current";
-            Uri apk = Uri.parse(START + "downloads/saleng-digital.apk?v=" + version);
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-                try {
-                    DownloadManager downloads = (DownloadManager) getSystemService(DOWNLOAD_SERVICE);
-                    DownloadManager.Request request = new DownloadManager.Request(apk);
-                    request.setTitle("Trash 2 cash");
-                    request.setMimeType("application/vnd.android.package-archive");
-                    request.setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED);
-                    request.setDestinationInExternalPublicDir(Environment.DIRECTORY_DOWNLOADS,
-                        "Trash-2-cash-" + version + "-" + System.currentTimeMillis() + ".apk");
-                    downloads.enqueue(request);
-                    return "queued";
-                } catch (RuntimeException e) { /* Use the system browser if Downloads is unavailable. */ }
-            }
-            try {
-                startActivity(new Intent(Intent.ACTION_VIEW, apk).addCategory(Intent.CATEGORY_BROWSABLE));
-                return "browser";
-            } catch (ActivityNotFoundException | SecurityException e) { return "manual"; }
-        }
-
-        @JavascriptInterface public void openDownloads() {
-            runOnUiThread(() -> {
-                try { startActivity(new Intent(DownloadManager.ACTION_VIEW_DOWNLOADS)); }
-                catch (ActivityNotFoundException | SecurityException e) { message("เปิดแอปไฟล์ แล้วเลือกดาวน์โหลด"); }
-            });
+            runOnUiThread(() -> startActivity(new Intent(MainActivity.this, UpdateActivity.class)
+                .putExtra(UpdateActivity.VERSION, version)));
+            return "installer";
         }
 
         @JavascriptInterface public void printPage() {

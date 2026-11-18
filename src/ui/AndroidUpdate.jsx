@@ -108,6 +108,7 @@ export function AndroidUpdate() {
       return;
     }
     const outcome = bridge.downloadUpdate(release.versionCode);
+    if (outcome === "installer") return;
     if (outcome === "current") {
       setRelease(null);
       setMessage("คุณใช้แอปรุ่นล่าสุดแล้ว");
