@@ -2,6 +2,7 @@
 .android-signing
 .vercel
 .env*
+.local-data
 android
 node_modules
 dist

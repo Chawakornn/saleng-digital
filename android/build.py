@@ -1,4 +1,4 @@
-"""Build the offline APK using the official Android SDK tools and a local signing key."""
+"""Build the online APK using the official Android SDK tools and a local signing key."""
 import os
 import shutil
 import subprocess
@@ -22,21 +22,16 @@ def run(*args):
 
 
 def build(stage):
-    web = stage / "assets/web"
     classes = stage / "classes"
     dex = stage / "dex"
     icons = stage / "res/drawable-nodpi"
-    for folder in (web, classes, dex, icons):
+    for folder in (classes, dex, icons):
         folder.mkdir(parents=True)
-    run("node", ROOT / "node_modules/vite/bin/vite.js", "build", "--mode", "android",
-        "--outDir", web)
-    if (web / "downloads").exists():
-        shutil.rmtree(web / "downloads")
     shutil.copyfile(ROOT / "public/icon-192.png", icons / "launcher.png")
     run(TOOLS / "aapt2", "compile", "--dir", stage / "res", "-o", stage / "res.zip")
     unsigned = stage / "unsigned.apk"
     run(TOOLS / "aapt2", "link", "-I", PLATFORM, "--manifest", ANDROID / "AndroidManifest.xml",
-        "-A", stage / "assets", "-R", stage / "res.zip", "-o", unsigned)
+        "-R", stage / "res.zip", "-o", unsigned)
     run(JDK / "javac", "-encoding", "UTF-8", "--release", "8", "-cp", PLATFORM,
         "-d", classes, ANDROID / "MainActivity.java")
     run(JDK / "jar", "cf", stage / "classes.jar", "-C", classes, ".")

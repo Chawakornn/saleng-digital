@@ -1,4 +1,4 @@
-import { Fragment, useEffect, useState } from "react";
+import { Fragment, useEffect, useRef, useState } from "react";
 import {
   ActionForm,
   BrandLink,
@@ -43,31 +43,53 @@ function Workspace({ initial, view, id }) {
     [reversed, setReversed] = useState(false),
     [statusFilter, setStatusFilter] = useState(""),
     [refreshError, setRefreshError] = useState("");
+  const version = useRef(initial.version);
+  const latestRequest = useRef(0);
   async function refreshState() {
-    let S = await fetch("/api/state", {
-      cache: "no-store",
-    });
-    if (!S.ok) throw Error("โหลดข้อมูลล่าสุดไม่ได้");
-    let B = await S.json();
-    if (!B.user) {
-      location.assign("/?roles=1");
+    const sequence = ++latestRequest.current;
+    const response = await fetch(
+      "/api/state?since=" + encodeURIComponent(version.current),
+      { cache: "no-store" },
+    );
+    if (!response.ok) throw Error("โหลดข้อมูลล่าสุดไม่ได้");
+    const result = await response.json();
+    if (sequence !== latestRequest.current) return;
+    if (result.unchanged) {
+      setState((previous) => ({ ...previous, serverTime: result.serverTime }));
+    } else if (!result.user) {
+      location.replace("/");
       return;
+    } else {
+      version.current = result.version;
+      setState(result);
     }
-    setState(B);
     setRefreshError("");
   }
   useEffect(() => {
-    let S = () => {
-        document.visibilityState === "visible" &&
-          refreshState().catch(() =>
-            setRefreshError("โหลดข้อมูลล่าสุดไม่ได้ กำลังลองอีกครั้ง"),
-          );
-      },
-      B = setInterval(S, 3500);
-    window.addEventListener("focus", S);
+    let stopped = false,
+      timer,
+      running = false;
+    async function poll() {
+      clearTimeout(timer);
+      if (stopped || running) return;
+      running = true;
+      try {
+        if (document.visibilityState === "visible") await refreshState();
+      } catch {
+        if (!stopped) setRefreshError("ยังซิงก์ไม่ได้ กำลังแสดงข้อมูลล่าสุดที่โหลดไว้");
+      } finally {
+        running = false;
+        if (!stopped) timer = setTimeout(poll, 3500);
+      }
+    }
+    timer = setTimeout(poll, 3500);
+    window.addEventListener("focus", poll);
+    document.addEventListener("visibilitychange", poll);
     return () => {
-      clearInterval(B);
-      window.removeEventListener("focus", S);
+      stopped = true;
+      clearTimeout(timer);
+      window.removeEventListener("focus", poll);
+      document.removeEventListener("visibilitychange", poll);
     };
   }, []);
   async function submitAction(S, B = {}) {
@@ -224,7 +246,7 @@ function Workspace({ initial, view, id }) {
         <button
           onClick={async () => {
             await postAction("logout");
-            location.assign("/?roles=1");
+            location.replace("/");
           }}
         >
           <LogOut size={17} />
@@ -248,7 +270,10 @@ function Workspace({ initial, view, id }) {
             {" · "}
             {state.user.name}
           </span>
-          {state.demo && <span className="soft">ข้อมูลสาธิต</span>}
+          <span className={"sync-status" + (refreshError ? " stale" : "")}>
+            <i />
+            {refreshError ? "รอเชื่อมต่อ" : "ซิงก์อัตโนมัติ"}
+          </span>
         </header>
         <h1>{heading}</h1>
         {refreshError && <p role="alert">{refreshError}</p>}
@@ -278,7 +303,13 @@ function Workspace({ initial, view, id }) {
               </div>
             </div>
             <h2>รายการล่าสุด</h2>
-            {recordList}
+            {state.bookings.length ? (
+              recordList
+            ) : (
+              <div className="panel">
+                <EmptyState>รายการขายจะแสดงที่นี่เมื่อมีการจองครั้งแรก</EmptyState>
+              </div>
+            )}
           </Fragment>
         )}
         {["bookings", "disputes", "rounds"].includes(view) && (
@@ -340,7 +371,11 @@ function Workspace({ initial, view, id }) {
                   ?.guide
               }
             </p>
-            <MaterialCards s={state} />
+            {state.materials.length ? (
+              <MaterialCards s={state} />
+            ) : (
+              <EmptyState>ชุมชนยังไม่ได้เพิ่มวัสดุและราคาอ้างอิง</EmptyState>
+            )}
           </Fragment>
         )}
         {view === "profile" && <Profile s={state} post={submitAction} />}
@@ -372,9 +407,20 @@ function Workspace({ initial, view, id }) {
         {view === "help" && (
           <section className="panel">
             <h2>วิธีใช้งาน</h2>
+            <h3>บัญชีและการซิงก์</h3>
+            <p>
+              เข้าสู่ระบบด้วยชื่อผู้ใช้เดิมบนมือถือหรือคอมเพื่อเปิดรายการของคุณ
+              หน้าที่เปิดอยู่ตรวจข้อมูลใหม่ทุกประมาณ 3.5 วินาทีเมื่อเชื่อมต่ออินเทอร์เน็ต
+            </p>
+            <h3>รอบรับซื้อและการจอง</h3>
             <p>
               ลูกบ้านเลือกวัสดุและจองรอบ ร้านตอบรับงานและผู้ดูแลยืนยันนัด
               เมื่อถึงจุดรับให้แสดงรหัสนัด ตรวจผลชั่ง และยืนยันเมื่อได้รับเงินจริง
+            </p>
+            <h3>ตั้งค่าชุมชน</h3>
+            <p>
+              ผู้ดูแลระบบเปิดเมนูจัดการข้อมูลเพื่อเพิ่มจุดรวมวัสดุ ตั้งราคา และกำหนดสิทธิ์สมาชิก
+              จากนั้นผู้ดูแลชุมชนเปิดรอบพร้อมระบุวัน เวลา และความจุ ร้านรับซื้อยื่นคำขอได้ในหน้าบัญชี
             </p>
             <SiteLink prefetch={false} className="under" href="/#help">
               อ่านคำถามที่พบบ่อย
@@ -408,7 +454,11 @@ function Workspace({ initial, view, id }) {
                     ? "หน้าหลัก"
                     : S === "profile"
                       ? "บัญชี"
-                      : String(B)}
+                      : S === "bookings"
+                        ? "รายการขาย"
+                        : S === "new"
+                          ? "จองขาย"
+                          : String(B)}
                 </span>
               </SiteLink>
             );

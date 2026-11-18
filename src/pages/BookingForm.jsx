@@ -10,13 +10,24 @@ import {
 import { ArrowRight, Check, ChevronLeft } from "lucide-react";
 import { SiteLink } from "../ui/Link.jsx";
 async function uploadAttachment(file, bookingId, kind) {
-  let form = new FormData();
-  form.set("bookingId", String(bookingId));
-  form.set("kind", kind);
-  form.set("file", file);
-  let response = await fetch("/api/image", {
+  if (
+    !file ||
+    file.size > 4194304 ||
+    !["image/png", "image/jpeg", "image/webp"].includes(file.type)
+  )
+    throw Error("เลือกรูป JPEG, PNG หรือ WebP ขนาดไม่เกิน 4 MB");
+  const bitmap = await createImageBitmap(file);
+  const scale = Math.min(1, 900 / Math.max(bitmap.width, bitmap.height));
+  const canvas = document.createElement("canvas");
+  canvas.width = Math.max(1, Math.round(bitmap.width * scale));
+  canvas.height = Math.max(1, Math.round(bitmap.height * scale));
+  canvas.getContext("2d").drawImage(bitmap, 0, 0, canvas.width, canvas.height);
+  bitmap.close();
+  const data = canvas.toDataURL("image/webp", 0.65).split(",")[1];
+  const response = await fetch("/api/image", {
     method: "POST",
-    body: form,
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ bookingId, kind, data }),
   });
   if (!response.ok) throw Error((await response.json()).error);
 }

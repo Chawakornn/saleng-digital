@@ -1,4 +1,4 @@
-const CACHE_NAME = "saleng-digital-v2";
+const CACHE_NAME = "saleng-digital-accounts-v3";
 const APP_SHELL = [
   "/",
   "/manifest.webmanifest",
@@ -6,8 +6,6 @@ const APP_SHELL = [
   "/icon-192.png",
   "/icon-512.png",
   "/apple-touch-icon.png",
-  "/schema.sql",
-  "/vendor/sql.js",
   "/art/aluminum.svg",
   "/art/cardboard.svg",
   "/art/glass.svg",
@@ -70,7 +68,7 @@ self.addEventListener("fetch", (event) => {
       if (request.mode === "navigate") {
         try {
           const response = await fetch(request);
-          if (response.ok) await cache.put("/", response.clone());
+          if (response.ok && response.headers.get("content-type")?.includes("text/html")) await cache.put("/", response.clone());
           return response;
         } catch {
           return (

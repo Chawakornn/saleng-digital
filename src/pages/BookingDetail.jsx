@@ -178,14 +178,20 @@ function BookingDetail({
                 href={window.showcaseImage(d.id)}
                 target="_blank"
                 rel="noreferrer"
-                onClick={import.meta.env.MODE === "android" ? (event) => {
-                  event.preventDefault();
-                  setExpandedImage(expandedImage === d.id ? null : d.id);
-                } : undefined}
+                onClick={
+                  window.SalengAndroid
+                    ? (event) => {
+                        event.preventDefault();
+                        setExpandedImage(expandedImage === d.id ? null : d.id);
+                      }
+                    : undefined
+                }
                 key={d.id}
               >
                 <img
-                  className={expandedImage === d.id ? "expanded-attachment" : "thumb"}
+                  className={
+                    expandedImage === d.id ? "expanded-attachment" : "thumb"
+                  }
                   alt={d.kind === "proof" ? "หลักฐานจากร้าน" : "ภาพวัสดุ"}
                   src={window.showcaseImage(d.id)}
                 />

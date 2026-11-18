@@ -19,7 +19,7 @@ function Profile({ s: state, post: submitAction }) {
       <section className="panel">
         <h2>บัญชีของฉัน</h2>
         <p>
-          {a.email}
+          @{a.username}
           {" · "}
           {labels[a.role]}
         </p>
@@ -34,6 +34,28 @@ function Profile({ s: state, post: submitAction }) {
           <FormField name="name" label="ชื่อที่ใช้ติดต่อ" value={a.name} />
         </ActionForm>
       </section>
+      {!window.SalengAndroid && (
+        <a className="secondary" href="/downloads/saleng-digital.apk" download>
+          ดาวน์โหลด APK สำหรับ Android
+        </a>
+      )}
+      {state.canClaimOwner && (
+        <details className="panel">
+          <summary>เปิดสิทธิ์ผู้ดูแล</summary>
+          <ActionForm
+            label="เปิดสิทธิ์ผู้ดูแล"
+            submit={(form) =>
+              submitAction("claimOwner", { code: readText(form, "code") })
+            }
+          >
+            <FormField
+              name="code"
+              label="รหัสส่วนตัวสำหรับเจ้าของระบบ"
+              type="password"
+            />
+          </ActionForm>
+        </details>
+      )}
       {["seller", "buyer"].includes(a.role) && (
         <details className="panel" open={a.role === "buyer"}>
           <summary>
@@ -145,7 +167,7 @@ function Management({ s: state, post: submitAction }) {
                 {labels[r.role]} {r.active ? "" : "· ระงับแล้ว"}
               </summary>
               <p>
-                {r.email} {state.buyers.find((n) => n.userId === r.id)?.shop}
+                {r.username} {state.buyers.find((n) => n.userId === r.id)?.shop}
               </p>
               <ActionForm
                 label="บันทึกสิทธิ์บัญชี"

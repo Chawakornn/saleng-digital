@@ -8,8 +8,8 @@ CREATE TABLE "Community" (
 
 CREATE TABLE "User" (
   "id" INTEGER PRIMARY KEY AUTOINCREMENT,
-  "email" TEXT NOT NULL UNIQUE,
-  "password" TEXT NOT NULL,
+  "username" TEXT NOT NULL UNIQUE,
+  "passwordHash" TEXT NOT NULL,
   "name" TEXT NOT NULL,
   "role" TEXT NOT NULL,
   "communityId" INTEGER NOT NULL REFERENCES "Community"("id") ON DELETE RESTRICT,
@@ -343,3 +343,7 @@ CREATE INDEX "Attachment_bookingId_idx" ON "Attachment"("bookingId");
 CREATE INDEX "Attachment_actorId_idx" ON "Attachment"("actorId");
 
 CREATE INDEX "Audit_actorId_idx" ON "Audit"("actorId");
+
+CREATE TABLE AppVersion (id INTEGER PRIMARY KEY CHECK (id=1), revision INTEGER NOT NULL);
+INSERT INTO AppVersion VALUES (1,0);
+CREATE TABLE OwnerSetup (id INTEGER PRIMARY KEY CHECK (id=1), digest TEXT NOT NULL);

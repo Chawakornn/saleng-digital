@@ -15,9 +15,9 @@ import {
   writeAudit,
 } from "./database.js";
 import { z } from "zod";
-function applyManagementAction(user, payload, action) {
+async function applyManagementAction(user, payload, action) {
   if (action === "profile") {
-    execute(
+    await execute(
       "UPDATE User SET name=? WHERE id=?",
       requiredText(payload.name, 80),
       user.id,
@@ -27,7 +27,7 @@ function applyManagementAction(user, payload, action) {
     };
   }
   if (action === "read") {
-    execute("UPDATE Notice SET seen=1 WHERE userId=?", user.id);
+    await execute("UPDATE Notice SET seen=1 WHERE userId=?", user.id);
     return {
       id: user.id,
     };
@@ -38,7 +38,7 @@ function applyManagementAction(user, payload, action) {
       n = requiredText(payload.vehicle, 100),
       o = positiveId(payload.capacity),
       i = requiredText(payload.area, 150);
-    execute(
+    await execute(
       "INSERT INTO Buyer(userId,shop,vehicle,capacity,area,approved) VALUES(?,?,?,?,?,0) ON CONFLICT(userId) DO UPDATE SET shop=excluded.shop,vehicle=excluded.vehicle,capacity=excluded.capacity,area=excluded.area",
       user.id,
       r,
@@ -52,53 +52,53 @@ function applyManagementAction(user, payload, action) {
   }
   if (action === "user") {
     requireRole(user, "admin");
-    let r = getRecord("User", positiveId(payload.userId));
+    let r = await getRecord("User", positiveId(payload.userId));
     requireCondition(r.id !== user.id, "แก้สิทธิ์บัญชีของตนเองไม่ได้");
     let n = z
       .enum(["admin", "buyer", "seller", "community"])
       .parse(payload.role);
     requireCondition(
-      !!getRecord("Community", positiveId(payload.communityId)).active,
+      !!(await getRecord("Community", positiveId(payload.communityId))).active,
       "ชุมชนถูกระงับ",
     );
     n === "buyer" &&
       requireCondition(
-        queryOne("SELECT id FROM Buyer WHERE userId=?", r.id),
+        await queryOne("SELECT id FROM Buyer WHERE userId=?", r.id),
         "ต้องมีคำขอสมัครร้านก่อน",
       );
     let o = z.boolean().parse(payload.active) ? 1 : 0;
-    execute(
+    await execute(
       "UPDATE User SET role=?,communityId=?,active=? WHERE id=?",
       n,
       positiveId(payload.communityId),
       o,
       r.id,
     );
-    execute(
+    await execute(
       "UPDATE Buyer SET approved=? WHERE userId=?",
       n === "buyer" && o ? 1 : 0,
       r.id,
     );
-    execute("DELETE FROM Session WHERE userId=?", r.id);
-    notifyUser(Number(r.id), "มีการปรับสิทธิ์บัญชีของคุณ");
+    await execute("DELETE FROM Session WHERE userId=?", r.id);
+    await notifyUser(Number(r.id), "มีการปรับสิทธิ์บัญชีของคุณ");
     return {
       id: Number(r.id),
     };
   }
   if (action === "member") {
     requireRole(user, "community");
-    let r = getRecord("User", positiveId(payload.userId));
+    let r = await getRecord("User", positiveId(payload.userId));
     requireCondition(
       r.communityId === user.communityId && r.role === "seller",
       "จัดการได้เฉพาะลูกบ้านในชุมชน",
       403,
     );
-    execute(
+    await execute(
       "UPDATE User SET active=? WHERE id=?",
       z.boolean().parse(payload.active) ? 1 : 0,
       r.id,
     );
-    execute("DELETE FROM Session WHERE userId=?", r.id);
+    await execute("DELETE FROM Session WHERE userId=?", r.id);
     return {
       id: Number(r.id),
     };
@@ -115,8 +115,8 @@ function applyManagementAction(user, payload, action) {
       o = requiredText(payload.address),
       i = optionalText(payload.guide);
     return r
-      ? (getRecord("Community", r),
-        execute(
+      ? (await getRecord("Community", r),
+        await execute(
           "UPDATE Community SET name=?,address=?,guide=? WHERE id=?",
           n,
           o,
@@ -127,7 +127,7 @@ function applyManagementAction(user, payload, action) {
           id: r,
         })
       : {
-          id: insert("Community", {
+          id: await insert("Community", {
             name: n,
             address: o,
             guide: i,
@@ -140,13 +140,13 @@ function applyManagementAction(user, payload, action) {
     requireRoundAccess(user, {
       communityId: r,
     });
-    getRecord("Community", r);
+    await getRecord("Community", r);
     let n = requiredText(payload.name, 100),
       o = requiredText(payload.address);
     if (payload.pointId) {
-      let i = getRecord("Point", positiveId(payload.pointId));
+      let i = await getRecord("Point", positiveId(payload.pointId));
       requireCondition(i.communityId === r, "จุดรับอยู่คนละชุมชน");
-      execute(
+      await execute(
         "UPDATE Point SET name=?,address=?,active=? WHERE id=?",
         n,
         o,
@@ -158,7 +158,7 @@ function applyManagementAction(user, payload, action) {
       };
     }
     return {
-      id: insert("Point", {
+      id: await insert("Point", {
         communityId: r,
         name: n,
         address: o,
@@ -172,20 +172,20 @@ function applyManagementAction(user, payload, action) {
       o;
     payload.materialId
       ? ((o = positiveId(payload.materialId)),
-        getRecord("Material", o),
-        execute(
+        await getRecord("Material", o),
+        await execute(
           "UPDATE Material SET name=?,guide=?,active=? WHERE id=?",
           r,
           n,
           payload.active === false ? 0 : 1,
           o,
         ))
-      : (o = insert("Material", {
+      : (o = await insert("Material", {
           name: r,
           guide: n,
           art: "paper",
         }));
-    insert("Price", {
+    await insert("Price", {
       materialId: o,
       price: nonnegativeInt(payload.price, 1000000),
       updated: nowIso(),
@@ -200,7 +200,7 @@ function applyManagementAction(user, payload, action) {
     requireRoundAccess(user, {
       communityId: r,
     });
-    let n = getRecord("Point", positiveId(payload.pointId));
+    let n = await getRecord("Point", positiveId(payload.pointId));
     requireCondition(n.communityId === r && n.active, "จุดรับไม่อยู่ในชุมชน");
     let o = isoDate(payload.startAt),
       i = isoDate(payload.endAt),
@@ -213,7 +213,7 @@ function applyManagementAction(user, payload, action) {
       (requireCondition(u <= o && o < i && s <= l, "ตรวจสอบช่วงเวลาและความจุ"),
       payload.roundId)
     ) {
-      let d = getRecord("Round", positiveId(payload.roundId));
+      let d = await getRecord("Round", positiveId(payload.roundId));
       requireRoundAccess(user, d);
       requireCondition(
         d.communityId === r &&
@@ -224,18 +224,20 @@ function applyManagementAction(user, payload, action) {
       );
       let m = requiredText(payload.reason);
       requireCondition(
-        l >= bookedGrams(Number(d.id)) &&
+        l >= (await bookedGrams(Number(d.id))) &&
           c >=
             Number(
-              queryOne(
-                "SELECT COUNT(*) n FROM Booking WHERE roundId=? AND " +
-                  activeBookingFilter,
-                d.id,
+              (
+                await queryOne(
+                  "SELECT COUNT(*) n FROM Booking WHERE roundId=? AND " +
+                    activeBookingFilter,
+                  d.id,
+                )
               )?.n,
             ),
         "ความจุต่ำกว่ายอดจอง",
       );
-      execute(
+      await execute(
         "UPDATE Round SET pointId=?,name=?,startAt=?,endAt=?,cutoff=?,capacity=?,minimum=?,maxBookings=?,reason=? WHERE id=?",
         n.id,
         f,
@@ -254,7 +256,7 @@ function applyManagementAction(user, payload, action) {
     }
     requireCondition(u > nowIso(), "กำหนดเวลาปิดรับในอนาคต");
     return {
-      id: insert("Round", {
+      id: await insert("Round", {
         communityId: r,
         pointId: n.id,
         name: f,
@@ -271,9 +273,9 @@ function applyManagementAction(user, payload, action) {
   }
   if (action === "survey") {
     requireRole(user, "community", "buyer");
-    let r = getRecord("Round", positiveId(payload.roundId));
+    let r = await getRecord("Round", positiveId(payload.roundId));
     requireRoundAccess(user, r);
-    execute(
+    await execute(
       "INSERT INTO Survey(roundId,userId,amount,note,at) VALUES(?,?,?,?,?) ON CONFLICT(roundId,userId) DO UPDATE SET amount=excluded.amount,note=excluded.note,at=excluded.at",
       r.id,
       user.id,
@@ -295,7 +297,7 @@ function applyManagementAction(user, payload, action) {
       "agreement",
     ].includes(action)
   ) {
-    let r = getRecord("Round", positiveId(payload.roundId));
+    let r = await getRecord("Round", positiveId(payload.roundId));
     if (
       (requireRoundAccess(user, r),
       action === "open" &&
@@ -304,22 +306,22 @@ function applyManagementAction(user, payload, action) {
           r.status === "DRAFT" && String(r.cutoff) > nowIso(),
           "เปิดรอบนี้ไม่ได้",
         ),
-        execute("UPDATE Round SET status='OPEN' WHERE id=?", r.id)),
+        await execute("UPDATE Round SET status='OPEN' WHERE id=?", r.id)),
       action === "invite")
     ) {
       requireRole(user, "community", "admin");
       requireCondition(r.status === "OPEN" && !r.buyerId, "รอบมีร้านตอบรับแล้ว");
       let n = positiveId(payload.buyerId);
       requireCondition(
-        queryOne(
+        await queryOne(
           "SELECT b.id FROM Buyer b JOIN User u ON u.id=b.userId WHERE b.userId=? AND b.approved=1 AND u.active=1 AND u.communityId=?",
           n,
           r.communityId,
         ),
         "ร้านไม่ได้รับอนุมัติในพื้นที่",
       );
-      execute("UPDATE Round SET invitedId=? WHERE id=?", n, r.id);
-      notifyUser(n, "ได้รับเชิญเข้ารอบ " + r.name);
+      await execute("UPDATE Round SET invitedId=? WHERE id=?", n, r.id);
+      await notifyUser(n, "ได้รับเชิญเข้ารอบ " + r.name);
     }
     if (action === "economics" || action === "destination")
       if (
@@ -330,7 +332,7 @@ function applyManagementAction(user, payload, action) {
         ),
         action === "economics")
       )
-        execute(
+        await execute(
           "INSERT INTO Economics(roundId,resale,trip,other) VALUES(?,?,?,?) ON CONFLICT(roundId) DO UPDATE SET resale=excluded.resale,trip=excluded.trip,other=excluded.other",
           r.id,
           nonnegativeInt(payload.resale),
@@ -353,15 +355,17 @@ function applyManagementAction(user, payload, action) {
             l = nonnegativeInt(o.rejected),
             s = optionalText(o.reason),
             c = Number(
-              queryOne(
-                "SELECT SUM(w.grams) g FROM Payment p JOIN Booking b ON b.id=p.bookingId JOIN WeighItem w ON w.revisionId=p.revisionId WHERE b.roundId=? AND w.materialId=?",
-                r.id,
-                i,
+              (
+                await queryOne(
+                  "SELECT SUM(w.grams) g FROM Payment p JOIN Booking b ON b.id=p.bookingId JOIN WeighItem w ON w.revisionId=p.revisionId WHERE b.roundId=? AND w.materialId=?",
+                  r.id,
+                  i,
+                )
               )?.g ?? 0,
             );
           requireCondition(c > 0 && u + l <= c, "น้ำหนักปลายทางเกินยอดรับซื้อ");
           requireCondition(!l || s, "กรุณาระบุสาเหตุคัดทิ้ง");
-          execute(
+          await execute(
             "INSERT INTO Destination(roundId,materialId,grams,rejected,reason,at) VALUES(?,?,?,?,?,?) ON CONFLICT(roundId,materialId) DO UPDATE SET grams=excluded.grams,rejected=excluded.rejected,reason=excluded.reason,at=excluded.at",
             r.id,
             i,
@@ -375,7 +379,7 @@ function applyManagementAction(user, payload, action) {
     if (
       (action === "cost" &&
         (requireRole(user, "admin"),
-        execute(
+        await execute(
           "INSERT INTO PlatformCost(roundId,estimate,actual) VALUES(?,?,?) ON CONFLICT(roundId) DO UPDATE SET estimate=excluded.estimate,actual=excluded.actual",
           r.id,
           nonnegativeInt(payload.estimate),
@@ -386,14 +390,14 @@ function applyManagementAction(user, payload, action) {
       requireRole(user, "admin");
       let n = z.enum(["community", "buyer"]).parse(payload.payer);
       requireCondition(
-        !queryOne(
+        !(await queryOne(
           "SELECT id FROM Agreement WHERE roundId=? AND payer=?",
           r.id,
           n,
-        ),
+        )),
         "มีข้อตกลงฝั่งนี้แล้ว",
       );
-      insert("Agreement", {
+      await insert("Agreement", {
         roundId: r.id,
         payer: n,
         amount: nonnegativeInt(payload.amount),
@@ -406,16 +410,16 @@ function applyManagementAction(user, payload, action) {
   }
   if (action === "issue" || action === "settle") {
     requireRole(user, "admin");
-    let r = getRecord("Agreement", positiveId(payload.agreementId)),
-      n = queryOne("SELECT * FROM Charge WHERE agreementId=?", r.id);
+    let r = await getRecord("Agreement", positiveId(payload.agreementId)),
+      n = await queryOne("SELECT * FROM Charge WHERE agreementId=?", r.id);
     action === "issue"
       ? (requireCondition(!n, "ออกใบเรียกเก็บแล้ว"),
-        insert("Charge", {
+        await insert("Charge", {
           agreementId: r.id,
           issued: nowIso(),
         }))
       : (requireCondition(n && !n.paid, "ไม่มีใบเรียกเก็บค้างชำระ"),
-        execute("UPDATE Charge SET paid=? WHERE id=?", nowIso(), n.id));
+        await execute("UPDATE Charge SET paid=? WHERE id=?", nowIso(), n.id));
     return {
       id: Number(r.id),
     };
@@ -440,13 +444,15 @@ function priceForGrams(grams, price) {
   return Number((BigInt(grams) * BigInt(price) + 500n) / 1000n);
 }
 var activeBookingFilter = "status NOT IN ('CANCELLED','NO_SHOW')";
-function bookedGrams(e, t = 0) {
+async function bookedGrams(e, t = 0) {
   return Number(
-    queryOne(
-      "SELECT COALESCE(SUM(i.grams),0) AS g FROM BookingItem i JOIN Booking b ON b.id=i.bookingId WHERE b.roundId=? AND b.id<>? AND b." +
-        activeBookingFilter,
-      e,
-      t,
+    (
+      await queryOne(
+        "SELECT COALESCE(SUM(i.grams),0) AS g FROM BookingItem i JOIN Booking b ON b.id=i.bookingId WHERE b.roundId=? AND b.id<>? AND b." +
+          activeBookingFilter,
+        e,
+        t,
+      )
     )?.g,
   );
 }
@@ -459,23 +465,27 @@ function requireUniqueMaterials(e) {
     "ประเภทวัสดุซ้ำ",
   );
 }
-function setBookingStatus(e, t, a, r = "") {
-  execute("UPDATE Booking SET status=?,version=version+1 WHERE id=?", a, t.id);
-  insert("Event", {
+async function setBookingStatus(e, t, a, r = "") {
+  await execute(
+    "UPDATE Booking SET status=?,version=version+1 WHERE id=?",
+    a,
+    t.id,
+  );
+  await insert("Event", {
     bookingId: t.id,
     actorId: e.id,
     status: a,
     note: r,
     at: nowIso(),
   });
-  notifyUser(
+  await notifyUser(
     Number(t.sellerId),
     String(t.code) + " · " + (r || "สถานะรายการเปลี่ยนแล้ว"),
   );
-  let n = getRecord("Round", Number(t.roundId)).buyerId;
+  let n = (await getRecord("Round", Number(t.roundId))).buyerId;
   n &&
     n !== e.id &&
-    notifyUser(Number(n), String(t.code) + " · มีความเคลื่อนไหวใหม่");
+    (await notifyUser(Number(n), String(t.code) + " · มีความเคลื่อนไหวใหม่"));
 }
 function requireStatus(e, ...t) {
   requireCondition(
@@ -483,21 +493,21 @@ function requireStatus(e, ...t) {
     "สถานะรายการเปลี่ยนแล้ว กรุณาตรวจข้อมูลล่าสุด",
   );
 }
-function requireApprovedBuyer(e) {
+async function requireApprovedBuyer(e) {
   requireRole(e, "buyer");
   requireCondition(
-    queryOne("SELECT id FROM Buyer WHERE userId=? AND approved=1", e.id),
+    await queryOne("SELECT id FROM Buyer WHERE userId=? AND approved=1", e.id),
     "ร้านยังไม่ได้รับอนุมัติ",
     403,
   );
 }
-function saveBooking(user, payload, editing) {
+async function saveBooking(user, payload, editing) {
   requireRole(user, "seller");
   let r = editing
-    ? getRecord("Booking", positiveId(payload.bookingId))
+    ? await getRecord("Booking", positiveId(payload.bookingId))
     : void 0;
-  r && (requireBookingAccess(user, r), requireStatus(r, "BOOKED"));
-  let n = getRecord(
+  r && (await requireBookingAccess(user, r), requireStatus(r, "BOOKED"));
+  let n = await getRecord(
     "Round",
     r ? Number(r.roundId) : positiveId(payload.roundId),
   );
@@ -508,39 +518,43 @@ function saveBooking(user, payload, editing) {
   );
   let o = parseItems(payload.items);
   requireUniqueMaterials(o);
-  let i = o.map((f) => {
-      let d = getRecord("Material", positiveId(f.materialId));
-      requireCondition(d.active, "วัสดุนี้ปิดรับแล้ว");
-      let m = queryOne(
-        "SELECT price FROM Price WHERE materialId=? ORDER BY id DESC LIMIT 1",
-        d.id,
-      );
-      requireCondition(m, "ยังไม่มีราคาอ้างอิง");
-      return {
-        materialId: d.id,
-        grams: positiveId(f.grams),
-        price: m.price,
-      };
-    }),
+  let i = await Promise.all(
+      o.map(async (f) => {
+        let d = await getRecord("Material", positiveId(f.materialId));
+        requireCondition(d.active, "วัสดุนี้ปิดรับแล้ว");
+        let m = await queryOne(
+          "SELECT price FROM Price WHERE materialId=? ORDER BY id DESC LIMIT 1",
+          d.id,
+        );
+        requireCondition(m, "ยังไม่มีราคาอ้างอิง");
+        return {
+          materialId: d.id,
+          grams: positiveId(f.grams),
+          price: m.price,
+        };
+      }),
+    ),
     u = Number(
-      queryOne(
-        "SELECT count(*) AS n FROM Booking WHERE roundId=? AND " +
-          activeBookingFilter +
-          " AND id<>?",
-        n.id,
-        r?.id ?? 0,
+      (
+        await queryOne(
+          "SELECT count(*) AS n FROM Booking WHERE roundId=? AND " +
+            activeBookingFilter +
+            " AND id<>?",
+          n.id,
+          r?.id ?? 0,
+        )
       )?.n,
     ),
     l = i.reduce((f, d) => f + d.grams, 0);
   requireCondition(
-    bookedGrams(Number(n.id), Number(r?.id ?? 0)) + l <= Number(n.capacity) &&
-      u < Number(n.maxBookings),
+    (await bookedGrams(Number(n.id), Number(r?.id ?? 0))) + l <=
+      Number(n.capacity) && u < Number(n.maxBookings),
     "ความจุหรือจำนวนรายการของรอบไม่เพียงพอ",
   );
   let s = optionalText(payload.note),
     c = r
       ? Number(r.id)
-      : insert("Booking", {
+      : await insert("Booking", {
           roundId: n.id,
           sellerId: user.id,
           code: "TC-" + randomBytes(5).toString("hex").toUpperCase(),
@@ -549,14 +563,18 @@ function saveBooking(user, payload, editing) {
           created: nowIso(),
         });
   r &&
-    (execute("DELETE FROM BookingItem WHERE bookingId=?", c),
-    execute("UPDATE Booking SET note=?,version=version+1 WHERE id=?", s, c));
+    (await execute("DELETE FROM BookingItem WHERE bookingId=?", c),
+    await execute(
+      "UPDATE Booking SET note=?,version=version+1 WHERE id=?",
+      s,
+      c,
+    ));
   for (let f of i)
-    insert("BookingItem", {
+    await insert("BookingItem", {
       bookingId: c,
       ...f,
     });
-  insert("Event", {
+  await insert("Event", {
     bookingId: c,
     actorId: user.id,
     status: "BOOKED",
@@ -567,11 +585,11 @@ function saveBooking(user, payload, editing) {
     id: c,
   };
 }
-function applyRoundAction(user, payload, action) {
-  let round = getRecord("Round", positiveId(payload.roundId));
+async function applyRoundAction(user, payload, action) {
+  let round = await getRecord("Round", positiveId(payload.roundId));
   if (["claim", "decline", "estimate"].includes(action)) {
-    requireApprovedBuyer(user);
-    let n = queryOne("SELECT * FROM Buyer WHERE userId=?", user.id);
+    await requireApprovedBuyer(user);
+    let n = await queryOne("SELECT * FROM Buyer WHERE userId=?", user.id);
     if (
       (requireCondition(
         round.status === "OPEN" &&
@@ -582,7 +600,7 @@ function applyRoundAction(user, payload, action) {
       ),
       action === "estimate")
     )
-      execute(
+      await execute(
         "INSERT INTO Estimate(roundId,userId,resale,trip,other) VALUES(?,?,?,?,?) ON CONFLICT(roundId,userId) DO UPDATE SET resale=excluded.resale,trip=excluded.trip,other=excluded.other",
         round.id,
         user.id,
@@ -591,7 +609,7 @@ function applyRoundAction(user, payload, action) {
         nonnegativeInt(payload.other),
       );
     else if (action === "decline")
-      (execute(
+      (await execute(
         "INSERT OR REPLACE INTO Decline(roundId,userId,reason,at) VALUES(?,?,?,?)",
         round.id,
         user.id,
@@ -599,18 +617,21 @@ function applyRoundAction(user, payload, action) {
         nowIso(),
       ),
         round.invitedId === user.id &&
-          execute("UPDATE Round SET invitedId=NULL WHERE id=?", round.id));
+          (await execute(
+            "UPDATE Round SET invitedId=NULL WHERE id=?",
+            round.id,
+          )));
     else {
       requireCondition(
-        Number(n.capacity) >= bookedGrams(Number(round.id)),
+        Number(n.capacity) >= (await bookedGrams(Number(round.id))),
         "รถมีความจุไม่เพียงพอ",
       );
-      execute("UPDATE Round SET buyerId=? WHERE id=?", user.id, round.id);
-      for (let o of queryAll(
+      await execute("UPDATE Round SET buyerId=? WHERE id=?", user.id, round.id);
+      for (let o of await queryAll(
         "SELECT id FROM User WHERE communityId=? AND role='community'",
         round.communityId,
       ))
-        notifyUser(Number(o.id), "ร้านตอบรับรอบ " + round.name);
+        await notifyUser(Number(o.id), "ร้านตอบรับรอบ " + round.name);
     }
   } else if (
     (requireRole(user, "community", "admin"),
@@ -621,11 +642,11 @@ function applyRoundAction(user, payload, action) {
       round.status === "OPEN" && round.buyerId,
       "กรุณารอร้านตอบรับก่อนยืนยัน",
     );
-    let n = queryOne(
+    let n = await queryOne(
         "SELECT bp.* FROM Buyer bp JOIN User u ON u.id=bp.userId WHERE bp.userId=? AND bp.approved=1 AND u.active=1",
         round.buyerId,
       ),
-      o = bookedGrams(Number(round.id));
+      o = await bookedGrams(Number(round.id));
     requireCondition(
       n && Number(n.capacity) >= o && Number(round.capacity) >= o,
       "ความจุรถหรือรอบไม่เพียงพอ",
@@ -635,54 +656,57 @@ function applyRoundAction(user, payload, action) {
       o >= Number(round.minimum) || i,
       "ต้องระบุเหตุผลอนุมัติต่ำกว่าเกณฑ์",
     );
-    execute(
+    await execute(
       "UPDATE Round SET status='CONFIRMED',reason=? WHERE id=?",
       i,
       round.id,
     );
-    for (let u of queryAll(
+    for (let u of await queryAll(
       "SELECT * FROM Booking WHERE roundId=? AND status='BOOKED'",
       round.id,
     ))
-      setBookingStatus(user, u, "CONFIRMED", "ชุมชนยืนยันนัดแล้ว");
+      await setBookingStatus(user, u, "CONFIRMED", "ชุมชนยืนยันนัดแล้ว");
   } else if (action === "cancelRound") {
     requireCondition(
       ["OPEN", "CONFIRMED", "DRAFT"].includes(String(round.status)),
       "เริ่มงานแล้ว ยกเลิกทั้งรอบไม่ได้",
     );
     let n = requiredText(payload.reason);
-    execute(
+    await execute(
       "UPDATE Round SET status='CANCELLED',reason=? WHERE id=?",
       n,
       round.id,
     );
-    for (let o of queryAll(
+    for (let o of await queryAll(
       "SELECT * FROM Booking WHERE roundId=? AND status IN ('BOOKED','CONFIRMED')",
       round.id,
     ))
-      setBookingStatus(user, o, "CANCELLED", n);
+      await setBookingStatus(user, o, "CANCELLED", n);
   } else
     (requireCondition(
       ["CONFIRMED", "IN_PROGRESS"].includes(String(round.status)),
       "ยังปิดรอบไม่ได้",
     ),
       requireCondition(
-        !queryOne(
+        !(await queryOne(
           "SELECT id FROM Booking WHERE roundId=? AND status NOT IN ('CANCELLED','COMPLETED','NO_SHOW')",
           round.id,
-        ),
+        )),
         "ยังมีรายการค้างในรอบ",
       ),
-      execute("UPDATE Round SET status='COMPLETED' WHERE id=?", round.id));
+      await execute(
+        "UPDATE Round SET status='COMPLETED' WHERE id=?",
+        round.id,
+      ));
   return {
     id: Number(round.id),
   };
 }
-function applyBookingAction(user, payload, action) {
-  let booking = getRecord("Booking", positiveId(payload.bookingId));
-  requireBookingAccess(user, booking);
-  let n = getRecord("Round", Number(booking.roundId)),
-    o = queryOne(
+async function applyBookingAction(user, payload, action) {
+  let booking = await getRecord("Booking", positiveId(payload.bookingId));
+  await requireBookingAccess(user, booking);
+  let n = await getRecord("Round", Number(booking.roundId)),
+    o = await queryOne(
       "SELECT * FROM Revision WHERE bookingId=? ORDER BY number DESC LIMIT 1",
       booking.id,
     );
@@ -691,14 +715,14 @@ function applyBookingAction(user, payload, action) {
       (requireRole(user, "seller"),
       requireStatus(booking, "BOOKED", "CONFIRMED"),
       requireCondition(String(n.cutoff) > nowIso(), "พ้นกำหนดยกเลิก"),
-      setBookingStatus(
+      await setBookingStatus(
         user,
         booking,
         "CANCELLED",
         optionalText(payload.reason) || "ผู้ขายยกเลิกนัด",
       )),
     (action === "checkin" || action === "noShow") &&
-      (requireApprovedBuyer(user),
+      (await requireApprovedBuyer(user),
       requireStatus(booking, "CONFIRMED"),
       action === "checkin"
         ? requireCondition(
@@ -706,11 +730,11 @@ function applyBookingAction(user, payload, action) {
             "รหัสนัดไม่ถูกต้อง",
           )
         : requireCondition(nowIso() > String(n.endAt), "ยังไม่สิ้นสุดช่วงนัด"),
-      execute(
+      await execute(
         "UPDATE Round SET status='IN_PROGRESS' WHERE id=? AND status='CONFIRMED'",
         n.id,
       ),
-      setBookingStatus(
+      await setBookingStatus(
         user,
         booking,
         action === "checkin" ? "CHECKED_IN" : "NO_SHOW",
@@ -718,7 +742,7 @@ function applyBookingAction(user, payload, action) {
       )),
     action === "weigh")
   ) {
-    requireApprovedBuyer(user);
+    await requireApprovedBuyer(user);
     requireStatus(
       booking,
       "CHECKED_IN",
@@ -731,7 +755,10 @@ function applyBookingAction(user, payload, action) {
     );
     let i = parseItems(payload.items);
     requireUniqueMaterials(i);
-    let u = queryAll("SELECT * FROM BookingItem WHERE bookingId=?", booking.id);
+    let u = await queryAll(
+      "SELECT * FROM BookingItem WHERE bookingId=?",
+      booking.id,
+    );
     requireCondition(
       i.length === u.length &&
         i.every((f) => u.some((d) => d.materialId === f.materialId)),
@@ -752,7 +779,7 @@ function applyBookingAction(user, payload, action) {
           reason: g,
         };
       }),
-      c = insert("Revision", {
+      c = await insert("Revision", {
         bookingId: booking.id,
         actorId: user.id,
         number: Number(o?.number ?? 0) + 1,
@@ -761,17 +788,17 @@ function applyBookingAction(user, payload, action) {
         at: nowIso(),
       });
     for (let f of s)
-      insert("WeighItem", {
+      await insert("WeighItem", {
         revisionId: c,
         ...f,
       });
     o &&
-      execute(
+      (await execute(
         "UPDATE Acceptance SET revoked=? WHERE revisionId=?",
         nowIso(),
         o.id,
-      );
-    setBookingStatus(
+      ));
+    await setBookingStatus(
       user,
       booking,
       "AWAITING_SELLER_ACCEPTANCE",
@@ -790,23 +817,23 @@ function applyBookingAction(user, payload, action) {
         o && o.id === positiveId(payload.revisionId),
         "ผลชั่งรุ่นนี้ถูกแทนที่แล้ว",
       ),
-      insert("Acceptance", {
+      await insert("Acceptance", {
         revisionId: o.id,
         sellerId: user.id,
         at: nowIso(),
       }),
-      setBookingStatus(user, booking, "ACCEPTED", "ผู้ขายตกลงยอดซื้อขาย")),
+      await setBookingStatus(user, booking, "ACCEPTED", "ผู้ขายตกลงยอดซื้อขาย")),
     action === "pay")
   ) {
-    requireApprovedBuyer(user);
+    await requireApprovedBuyer(user);
     requireStatus(booking, "ACCEPTED");
     requireCondition(
       o &&
         o.id === positiveId(payload.revisionId) &&
-        queryOne(
+        (await queryOne(
           "SELECT id FROM Acceptance WHERE revisionId=? AND revoked IS NULL",
           o.id,
-        ),
+        )),
       "ต้องได้รับการยืนยันผลชั่งล่าสุด",
     );
     let i = z.enum(["cash", "transfer"]).parse(payload.method),
@@ -817,7 +844,7 @@ function applyBookingAction(user, payload, action) {
       "เวลาจ่ายต้องไม่อยู่ในอนาคต",
     );
     requireCondition(i === "cash" || u, "กรุณาระบุเลขอ้างอิงโอน");
-    insert("Payment", {
+    await insert("Payment", {
       bookingId: booking.id,
       revisionId: o.id,
       amount: o.total,
@@ -827,18 +854,21 @@ function applyBookingAction(user, payload, action) {
       actorId: user.id,
       recorded: nowIso(),
     });
-    setBookingStatus(user, booking, "PAYMENT_REPORTED", "ร้านแจ้งว่าจ่ายแล้ว");
+    await setBookingStatus(user, booking, "PAYMENT_REPORTED", "ร้านแจ้งว่าจ่ายแล้ว");
   }
   if (action === "receive") {
     requireRole(user, "seller");
     requireStatus(booking, "PAYMENT_REPORTED");
-    let i = queryOne("SELECT id FROM Payment WHERE bookingId=?", booking.id);
-    insert("Receipt", {
+    let i = await queryOne(
+      "SELECT id FROM Payment WHERE bookingId=?",
+      booking.id,
+    );
+    await insert("Receipt", {
       paymentId: i.id,
       sellerId: user.id,
       at: nowIso(),
     });
-    setBookingStatus(user, booking, "COMPLETED", "ผู้ขายยืนยันได้รับเงินแล้ว");
+    await setBookingStatus(user, booking, "COMPLETED", "ผู้ขายยืนยันได้รับเงินแล้ว");
   }
   if (action === "dispute" || action === "reject") {
     requireRole(user, "seller");
@@ -849,46 +879,46 @@ function applyBookingAction(user, payload, action) {
       "PAYMENT_REPORTED",
     );
     let i = requiredText(payload.reason);
-    insert("Dispute", {
+    await insert("Dispute", {
       bookingId: booking.id,
       openerId: user.id,
       prior: booking.status,
       reason: i,
       opened: nowIso(),
     });
-    setBookingStatus(user, booking, "DISPUTED", i);
-    for (let u of queryAll(
+    await setBookingStatus(user, booking, "DISPUTED", i);
+    for (let u of await queryAll(
       "SELECT id FROM User WHERE role='admin' AND active=1",
     ))
-      notifyUser(Number(u.id), "มีข้อพิพาท " + booking.code);
+      await notifyUser(Number(u.id), "มีข้อพิพาท " + booking.code);
   }
   if (action === "resolve") {
     requireRole(user, "admin");
     requireStatus(booking, "DISPUTED");
-    let i = queryOne(
+    let i = await queryOne(
         "SELECT * FROM Dispute WHERE bookingId=? AND closed IS NULL",
         booking.id,
       ),
       u = requiredText(payload.reason);
-    execute(
+    await execute(
       "UPDATE Dispute SET handlerId=?,resolution=?,closed=? WHERE id=?",
       user.id,
       u,
       nowIso(),
       i.id,
     );
-    setBookingStatus(user, booking, String(i.prior), u);
+    await setBookingStatus(user, booking, String(i.prior), u);
   }
   return {
     id: Number(booking.id),
   };
 }
-function applyAction(user, payload) {
+async function applyAction(user, payload) {
   let action = requiredText(payload.action, 40);
-  return transaction(() => {
+  return await transaction(async () => {
     let r;
     action === "book" || action === "editBooking"
-      ? (r = saveBooking(user, payload, action === "editBooking"))
+      ? (r = await saveBooking(user, payload, action === "editBooking"))
       : [
             "claim",
             "confirm",
@@ -897,7 +927,7 @@ function applyAction(user, payload) {
             "cancelRound",
             "finishRound",
           ].includes(action)
-        ? (r = applyRoundAction(user, payload, action))
+        ? (r = await applyRoundAction(user, payload, action))
         : [
               "cancel",
               "checkin",
@@ -910,9 +940,9 @@ function applyAction(user, payload) {
               "reject",
               "resolve",
             ].includes(action)
-          ? (r = applyBookingAction(user, payload, action))
-          : (r = applyManagementAction(user, payload, action));
-    writeAudit(user, action, String(r.id), optionalText(payload.reason));
+          ? (r = await applyBookingAction(user, payload, action))
+          : (r = await applyManagementAction(user, payload, action));
+    await writeAudit(user, action, String(r.id), optionalText(payload.reason));
     return r;
   });
 }

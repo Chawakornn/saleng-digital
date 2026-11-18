@@ -74,6 +74,20 @@ function Dashboard({ state }) {
         (r = "ตรวจคำแจ้งจากผู้ขายและประวัติผลชั่งก่อนบันทึกผล"),
         (o = viewUrl("disputes")),
         (n = "ดูข้อพิพาท"));
+  if (t === "admin" && (!state.points.length || !state.materials.length)) {
+    a = "เตรียมรอบรับซื้อครั้งแรก";
+    r = "เพิ่มจุดรวมวัสดุและราคาต่อกิโลกรัม แล้วจึงเปิดรอบให้สมาชิกจอง";
+    n = "จัดการข้อมูล";
+    o = viewUrl("manage");
+  } else if (
+    t === "seller" &&
+    !state.rounds.length &&
+    !state.materials.length
+  ) {
+    r = "เมื่อชุมชนเปิดรอบ คุณจะเลือกวัสดุและจองเวลานัดได้ที่นี่";
+    n = "ดูวิธีจอง";
+    o = viewUrl("help");
+  }
   return (
     <section className="next-action">
       <CalendarDays aria-hidden="true" />

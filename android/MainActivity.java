@@ -1,6 +1,7 @@
 package app.salengdigital.demo;
 
 import android.app.Activity;
+import android.app.AlertDialog;
 import android.content.ActivityNotFoundException;
 import android.content.Intent;
 import android.graphics.Color;
@@ -13,9 +14,14 @@ import android.widget.Toast;
 import java.io.*;
 import java.nio.charset.StandardCharsets;
 import java.util.Collections;
+import android.view.Gravity;
+import android.widget.Button;
+import android.widget.LinearLayout;
+import android.widget.TextView;
 
 public final class MainActivity extends Activity {
-    private static final String HOST = "appassets.androidplatform.net";
+    private static final String HOST = "saleng-digital.vercel.app";
+    private static final String LEGACY = "https://appassets.androidplatform.net";
     private static final String START = "https://" + HOST + "/";
     private static final int PICK_IMAGE = 1, SAVE_CSV = 2;
     private WebView web;
@@ -44,19 +50,12 @@ public final class MainActivity extends Activity {
 
             @Override public WebResourceResponse shouldInterceptRequest(WebView view, WebResourceRequest request) {
                 Uri uri = request.getUrl();
-                String path = uri.getPath();
-                if (isLocal(uri) && "GET".equals(request.getMethod()) && path != null &&
-                        !path.contains("..") && !path.contains("\\")) {
-                    String name = path.equals("/") ? "index.html" : path.substring(1);
-                    try {
-                        InputStream file = getAssets().open("web/" + name);
-                        return new WebResourceResponse(mime(name), "UTF-8", 200, "OK",
-                            Collections.singletonMap("Content-Security-Policy",
-                                "default-src 'self'; script-src 'self' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; frame-src 'none'; object-src 'none'; base-uri 'none'"), file);
-                    } catch (IOException ignored) { }
-                }
-                return new WebResourceResponse("text/plain", "UTF-8", 404, "Not Found",
-                        Collections.emptyMap(), new ByteArrayInputStream(new byte[0]));
+                if (isLocal(uri)) return null;
+                return new WebResourceResponse("text/plain", "UTF-8", 403, "Forbidden",
+                    Collections.emptyMap(), new ByteArrayInputStream(new byte[0]));
+            }
+            @Override public void onReceivedError(WebView view, WebResourceRequest request, WebResourceError error) {
+                if (request.isForMainFrame()) showConnectionError(frame);
             }
         });
         web.setWebChromeClient(new WebChromeClient() {
@@ -73,21 +72,61 @@ public final class MainActivity extends Activity {
             }
         });
         if (state != null) pendingCsv = state.getString("pendingCsv");
-        if (state == null || web.restoreState(state) == null) web.loadUrl(START);
+        if (state == null || web.restoreState(state) == null || !isLocal(Uri.parse(String.valueOf(web.getUrl())))) web.loadUrl(START);
+        offerLegacyCleanup();
     }
 
     private static boolean isLocal(Uri uri) {
         return "https".equals(uri.getScheme()) && HOST.equals(uri.getAuthority());
     }
 
-    private static String mime(String name) {
-        if (name.endsWith(".js")) return "application/javascript";
-        if (name.endsWith(".css")) return "text/css";
-        if (name.endsWith(".html")) return "text/html";
-        if (name.endsWith(".svg")) return "image/svg+xml";
-        if (name.endsWith(".png")) return "image/png";
-        if (name.endsWith(".webmanifest")) return "application/manifest+json";
-        return "text/plain";
+    private void showConnectionError(FrameLayout frame) {
+        if (frame.getChildCount() > 1) return;
+        LinearLayout box = new LinearLayout(this);
+        box.setOrientation(LinearLayout.VERTICAL);
+        box.setGravity(Gravity.CENTER);
+        box.setBackgroundColor(Color.rgb(247,248,244));
+        TextView title = new TextView(this);
+        title.setText("เชื่อมต่อซาเล้งดิจิทัลไม่ได้");
+        title.setTextSize(22);
+        box.addView(title);
+        TextView help = new TextView(this);
+        help.setText("ตรวจอินเทอร์เน็ตแล้วลองเปิดบัญชีอีกครั้ง");
+        box.addView(help);
+        Button retry = new Button(this);
+        retry.setText("ลองอีกครั้ง");
+        retry.setOnClickListener(v -> { frame.removeView(box); web.loadUrl(START); });
+        box.addView(retry);
+        frame.addView(box, new FrameLayout.LayoutParams(-1,-1));
+    }
+
+    private void offerLegacyCleanup() {
+        if (getPreferences(MODE_PRIVATE).getBoolean("legacyReviewed",false)) return;
+        // This isolated WebView only opens inline HTML at the old, app-owned origin.
+        WebView old = new WebView(this);
+        old.getSettings().setJavaScriptEnabled(true);
+        old.getSettings().setDomStorageEnabled(true);
+        old.getSettings().setBlockNetworkLoads(true);
+        old.setWebViewClient(new WebViewClient() {
+            @Override public void onPageFinished(WebView view, String url) {
+                view.evaluateJavascript("Boolean(localStorage.getItem('saleng-showcase-db-1'))", exists -> {
+                    if (isFinishing() || !"true".equals(exists)) { old.destroy(); return; }
+                    new AlertDialog.Builder(MainActivity.this)
+                        .setTitle("พบข้อมูลสาธิตจากรุ่นเดิม")
+                        .setMessage("ข้อมูลนี้อยู่ในเครื่องและแยกจากบัญชีใหม่ ต้องการลบรายการและรูปสาธิตในเครื่องนี้หรือไม่?")
+                        .setNegativeButton("เก็บไว้", (dialog,which) -> { markLegacyReviewed(); old.destroy(); })
+                        .setPositiveButton("ลบข้อมูลเดิม", (dialog,which) ->
+                            old.evaluateJavascript("Object.keys(localStorage).filter(k=>k==='saleng-role'||k==='saleng-showcase-db-1'||k.startsWith('saleng-image-')).forEach(k=>localStorage.removeItem(k))",
+                                result -> { markLegacyReviewed(); old.destroy(); }))
+                        .setOnCancelListener(dialog -> old.destroy()).show();
+                });
+            }
+        });
+        old.loadDataWithBaseURL(LEGACY+"/","<html></html>","text/html","UTF-8",null);
+    }
+
+    private void markLegacyReviewed() {
+        getPreferences(MODE_PRIVATE).edit().putBoolean("legacyReviewed",true).apply();
     }
 
     private final class DeviceActions {
