@@ -726,3 +726,13 @@ body:has(.menu-drawer[open]) {
   .home-shortcuts a:not(.price-shortcut) { align-items: flex-start; flex-direction: column; }
   .home-record { column-gap: 5px; }
 }
+
+/* Keep the sign-in controls reachable when Android offers an update. */
+#root:has(> .account-screen) > .android-update {
+  position: relative;
+  inset: auto;
+  transform: none;
+  width: 100%;
+  border-radius: 0;
+  box-shadow: none;
+}
