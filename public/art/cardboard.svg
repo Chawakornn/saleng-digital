@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 144 112" role="img" aria-labelledby="title">
+  <title id="title">กล่องกระดาษลังสีน้ำตาล</title>
+  <ellipse cx="75" cy="90" rx="52" ry="9" fill="#c4c6a9" opacity=".55"/>
+  <g stroke="#4e4d36" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M24 49l34-13 38 14-35 16z" fill="#e4ca96"/>
+    <path d="M24 49l37 17v27L24 76z" fill="#c99f66"/>
+    <path d="M61 66l35-16v27L61 93z" fill="#af8957"/>
+    <path d="M40 43l9-3 38 14-9 4v9l-7 3v-9z" fill="#ecd8a9" stroke="none"/>
+    <path d="M59 44l30-15 33 10-29 19z" fill="#a78153"/>
+    <path d="M59 44l34 14v36L59 79z" fill="#d3ad78"/>
+    <path d="M93 58l29-19v37L93 94z" fill="#b68f5d"/>
+    <path d="M59 44l-12-9 29-18 13 12zm30-15l8-10 34 10-9 10z" fill="#e3c797"/>
+    <path d="M59 44l34 14-8 12-35-16zm34 14l29-19 10 9-32 21z" fill="#e7cda1"/>
+    <path d="M66 73l11 5m-10-1l9 4m28-4l10-6" fill="none" stroke="#8a6e48" stroke-width="1.5"/>
+    <path d="M29 66l8 3m-8 1l8 3" fill="none" stroke="#7e704e"/>
+  </g>
+</svg>

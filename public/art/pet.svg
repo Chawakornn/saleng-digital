@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 144 112" role="img" aria-labelledby="title">
+  <title id="title">ขวดน้ำพลาสติกใสสองใบ</title>
+  <ellipse cx="73" cy="93" rx="42" ry="8" fill="#b9cbc0" opacity=".6"/>
+  <g stroke="#34584d" stroke-width="2" stroke-linejoin="round" stroke-linecap="round">
+    <g transform="rotate(14 94 68)">
+      <path d="M84 34h13v10c0 5 10 9 10 18v24q0 7-6 8l-2-1-6 2-4-2-4 1q-9 0-9-7V62c0-9 8-13 8-18z" fill="#c4e0cd"/>
+      <rect x="82" y="29" width="17" height="8" rx="2" fill="#7ca878"/>
+      <path d="M76 62q15 6 31 0v14q-15 5-31-1z" fill="#7faaa0"/>
+      <path d="M80 80q11 4 23 0m-22 5q11 3 21 0m-18-33l-4 6" fill="none" stroke="#8ab3a1" stroke-width="1.6"/>
+    </g>
+    <g transform="rotate(-9 57 63)">
+      <path d="M49 21h15v12c0 6 12 11 12 23v28q0 9-7 10l-4-1-6 2-5-2-5 1q-9-1-9-9V56c0-10 9-16 9-23z" fill="#dbead8"/>
+      <rect x="47" y="17" width="19" height="9" rx="2" fill="#7fae83"/>
+      <path d="M51 20v3m4-3v3m5-3v3" fill="none" stroke="#d9e9ba" stroke-width="1.2"/>
+      <path d="M40 56q18 5 36 0v17q-18 5-36-1z" fill="#9ac2b2"/>
+      <path d="M51 65q4-5 9-2l6 3-6 2q-4 2-9-3z" fill="#e3ecd6" stroke="none"/>
+      <path d="M44 77q14 5 28 0m-27 6q15 4 26 0" fill="none" stroke="#8ab3a1" stroke-width="1.5"/>
+      <path d="M46 51q0-7 6-12m-7 45v3" fill="none" stroke="#fff9e6" stroke-width="3"/>
+    </g>
+  </g>
+</svg>

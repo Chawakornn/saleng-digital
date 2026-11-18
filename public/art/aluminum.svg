@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 144 112" role="img" aria-labelledby="title">
+  <title id="title">กระป๋องเครื่องดื่มอะลูมิเนียม</title>
+  <ellipse cx="72" cy="92" rx="45" ry="8" fill="#bdccbc" opacity=".6"/>
+  <g stroke="#3c554a" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round">
+    <g transform="rotate(15 91 73)">
+      <path d="M74 44q16-6 32 0l-1 7 2 6v29l-3 6q-13 6-27 0l-3-6V57l2-7z" fill="#a7c5af"/>
+      <ellipse cx="90" cy="44" rx="16" ry="4.8" fill="#d9e0cc"/>
+      <ellipse cx="91" cy="44" rx="5" ry="1.7" fill="#82a18e" stroke-width="1"/>
+      <path d="M75 61q13 1 31-6v9q-17 10-31 8z" fill="#dbe3c1" stroke="none"/>
+      <path d="M78 87q13 4 24 0" fill="none" stroke="#729786" stroke-width="1.6"/>
+    </g>
+    <g transform="rotate(-8 57 71)">
+      <path d="M37 31q18-7 38 0l-2 7 3 6v39l-3 7q-16 7-32 0l-4-6V45l3-7z" fill="#c1d0c3"/>
+      <ellipse cx="56" cy="31" rx="19" ry="6" fill="#e6e9d8"/>
+      <ellipse cx="56" cy="31.6" rx="13.6" ry="3.7" fill="none" stroke="#94a599" stroke-width="1.1"/>
+      <path d="M51 31q0-2 4-2h5q3 0 3 1.5t-4 2.2h-5q-3 0-3-1.7z" fill="#8c9f93" stroke-width="1"/>
+      <path d="M37 58q17-1 39-14v15Q56 75 37 76z" fill="#7ca68f" stroke="none"/>
+      <path d="M38 67q18-2 37-16" fill="none" stroke="#d4e5c2" stroke-width="2"/>
+      <path d="M42 44v9m0 25v4" fill="none" stroke="#eef3dc" stroke-width="3"/>
+      <path d="M42 86q15 5 29 0" fill="none" stroke="#90a597" stroke-width="1.4"/>
+    </g>
+  </g>
+</svg>
