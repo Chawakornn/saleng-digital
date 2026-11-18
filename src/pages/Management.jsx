@@ -11,18 +11,22 @@ import {
   weightField,
 } from "../ui/shared.jsx";
 import { Fragment } from "react";
-function Profile({ s: state, post: submitAction }) {
+import { UserRound } from "lucide-react";
+function Profile({ s: state, post: submitAction, logoutControl }) {
   let a = state.user,
     r = state.buyers.find((n) => n.userId === a.id);
   return (
     <div className="detail">
       <section className="panel">
-        <h2>บัญชีของฉัน</h2>
-        <p>
-          @{a.username}
-          {" · "}
-          {labels[a.role]}
-        </p>
+        <div className="profile-identity">
+          <UserRound size={24} aria-hidden="true" />
+          <div>
+            <h2>{a.name}</h2>
+            <p>
+              @{a.username} · {labels[a.role]}
+            </p>
+          </div>
+        </div>
         <ActionForm
           label="บันทึกข้อมูลส่วนตัว"
           submit={(n) =>
@@ -83,6 +87,7 @@ function Profile({ s: state, post: submitAction }) {
           </ActionForm>
         </details>
       )}
+      {logoutControl}
     </div>
   );
 }

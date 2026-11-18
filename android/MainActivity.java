@@ -87,7 +87,7 @@ public final class MainActivity extends Activity {
         box.setGravity(Gravity.CENTER);
         box.setBackgroundColor(Color.rgb(247,248,244));
         TextView title = new TextView(this);
-        title.setText("เชื่อมต่อซาเล้งดิจิทัลไม่ได้");
+        title.setText("เชื่อมต่อ Trash 2 cash ไม่ได้");
         title.setTextSize(22);
         box.addView(title);
         TextView help = new TextView(this);
@@ -133,7 +133,7 @@ public final class MainActivity extends Activity {
         @JavascriptInterface public void printPage() {
             runOnUiThread(() -> {
                 PrintManager manager = (PrintManager) getSystemService(PRINT_SERVICE);
-                String title = "Saleng Digital";
+                String title = "Trash 2 cash";
                 manager.print(title, web.createPrintDocumentAdapter(title), null);
             });
         }
@@ -179,7 +179,10 @@ public final class MainActivity extends Activity {
     }
 
     @Override public void onBackPressed() {
-        if (web.canGoBack()) web.goBack();
-        else super.onBackPressed();
+        web.evaluateJavascript("(function(){const d=document.querySelector('#workspace-menu[open]');if(d){d.close();return true;}return false;})()", handled -> {
+            if ("true".equals(handled)) return;
+            if (web.canGoBack()) web.goBack();
+            else super.onBackPressed();
+        });
     }
 }

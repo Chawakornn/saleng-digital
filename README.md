@@ -1,4 +1,4 @@
-# Saleng Digital · ซาเล้งดิจิทัล
+# Trash 2 cash
 
 [เปิดเว็บ](https://saleng-digital.vercel.app/) · [ดาวน์โหลด APK สำหรับ Android](https://saleng-digital.vercel.app/downloads/saleng-digital.apk) · [GitHub Releases](https://github.com/Chawakornn/saleng-digital/releases)
 

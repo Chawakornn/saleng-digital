@@ -58,7 +58,7 @@ export function Login() {
       <header className="account-bar">
         <a className="account-brand" href="/">
           <img src="/icon.svg" alt="" width="36" height="36" />
-          Saleng Digital
+          Trash 2 cash
         </a>
         {!window.SalengAndroid && (
           <a
@@ -74,8 +74,8 @@ export function Login() {
       <main className="account-grid">
         <section className="account-story">
           <div>
-            <h2>ซาเล้งดิจิทัล</h2>
-            <p>นัดขายวัสดุรีไซเคิลกับร้านรับซื้อในชุมชน</p>
+            <h2>นัดขายรีไซเคิล</h2>
+            <p>เลือกรอบนัดกับร้านรับซื้อในชุมชน</p>
           </div>
           <img src="/art/hero.svg" alt="ซาเล้งบรรทุกวัสดุรีไซเคิลหน้าจุดนัดรับในชุมชน" />
         </section>

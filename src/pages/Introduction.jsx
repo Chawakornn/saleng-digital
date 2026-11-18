@@ -57,7 +57,7 @@ function Introduction({ state, signed }) {
           <div className="herocopy">
             <span className="kicker">
               <i />
-              {" ซาเล้งดิจิทัล"}
+              {" Trash 2 cash"}
             </span>
             <h1>
               นัดขายรีไซเคิล

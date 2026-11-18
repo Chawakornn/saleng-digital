@@ -27,6 +27,7 @@ import {
   Settings,
   TriangleAlert,
   UserRound,
+  X,
 } from "lucide-react";
 import { SiteLink } from "../ui/Link.jsx";
 import { Dashboard } from "./Dashboard.jsx";
@@ -35,7 +36,12 @@ import { BookingForm } from "./BookingForm.jsx";
 import { BookingDetail } from "./BookingDetail.jsx";
 import { Reports } from "./Reports.jsx";
 import { Management, Profile } from "./Management.jsx";
-function Workspace({ initial, view, id }) {
+function Workspace({ initial, view: firstView, id: firstId }) {
+  const [{ view, id }, setRoute] = useState({ view: firstView, id: firstId });
+  const drawer = useRef(null);
+  const [signingOut, setSigningOut] = useState(false);
+  const [logoutError, setLogoutError] = useState("");
+  const pageHeading = useRef(null);
   let [state, setState] = useState(initial),
     [menuOpen, setMenuOpen] = useState(false),
     [search, setSearch] = useState(""),
@@ -45,6 +51,71 @@ function Workspace({ initial, view, id }) {
     [refreshError, setRefreshError] = useState("");
   const version = useRef(initial.version);
   const latestRequest = useRef(0);
+  function readRoute() {
+    const params = new URLSearchParams(location.search);
+    drawer.current?.close();
+    setSearch("");
+    setStatusFilter("");
+    setPage(0);
+    setReversed(false);
+    setRoute({
+      view: params.get("view") || "home",
+      id: Number(params.get("id")) || 0,
+    });
+  }
+  useEffect(() => {
+    window.addEventListener("popstate", readRoute);
+    const desktop = matchMedia("(min-width:821px)");
+    const resize = () => {
+      if (desktop.matches) drawer.current?.close();
+    };
+    desktop.addEventListener("change", resize);
+    return () => {
+      window.removeEventListener("popstate", readRoute);
+      desktop.removeEventListener("change", resize);
+    };
+  }, []);
+  function followView(event) {
+    const link = event.target.closest("a[href]");
+    if (
+      !link ||
+      event.defaultPrevented ||
+      event.button !== 0 ||
+      event.metaKey ||
+      event.ctrlKey ||
+      event.shiftKey ||
+      event.altKey ||
+      link.target ||
+      link.hasAttribute("download")
+    )
+      return;
+    const url = new URL(link.href);
+    if (
+      url.origin !== location.origin ||
+      url.pathname !== "/" ||
+      !url.searchParams.has("view")
+    )
+      return;
+    event.preventDefault();
+    if (url.href !== location.href) history.pushState(null, "", url);
+    readRoute();
+    window.scrollTo({ top: 0, behavior: "instant" });
+    requestAnimationFrame(() =>
+      pageHeading.current?.focus({ preventScroll: true }),
+    );
+  }
+  async function logout() {
+    if (signingOut) return;
+    setSigningOut(true);
+    setLogoutError("");
+    try {
+      await postAction("logout");
+      location.replace("/");
+    } catch {
+      setLogoutError("ออกจากระบบไม่สำเร็จ กรุณาลองอีกครั้ง");
+      setSigningOut(false);
+    }
+  }
   async function refreshState() {
     const sequence = ++latestRequest.current;
     const response = await fetch(
@@ -218,54 +289,82 @@ function Workspace({ initial, view, id }) {
       )}
     </section>
   );
+  const logoutControl = (
+    <div className="logout-control">
+      <button type="button" disabled={signingOut} onClick={logout}>
+        <LogOut size={17} />
+        {signingOut ? "กำลังออกจากระบบ…" : "ออกจากระบบ"}
+      </button>
+      {logoutError && <p role="alert">{logoutError}</p>}
+    </div>
+  );
+  const menuLinks = (
+    <nav>
+      {navigation.map(([S, B, $e]) => {
+        let NavIcon = $e;
+        return (
+          <SiteLink
+            prefetch={false}
+            aria-current={view === S ? "page" : void 0}
+            className={view === S ? "active" : ""}
+            href={viewUrl(String(S))}
+            key={String(S)}
+          >
+            <NavIcon size={18} />
+            {String(B)}
+          </SiteLink>
+        );
+      })}
+    </nav>
+  );
   return (
-    <div className="shell">
-      <aside
-        id="workspace-menu"
-        className={"sidebar " + (menuOpen ? "visible" : "")}
-      >
+    <div className="shell" onClick={followView}>
+      <aside className="sidebar">
         <BrandLink />
-        <nav>
-          {navigation.map(([S, B, $e]) => {
-            let NavIcon = $e;
-            return (
-              <SiteLink
-                prefetch={false}
-                onClick={() => setMenuOpen(false)}
-                aria-current={view === S ? "page" : void 0}
-                className={view === S ? "active" : ""}
-                href={viewUrl(String(S))}
-                key={String(S)}
-              >
-                <NavIcon size={18} />
-                {String(B)}
-              </SiteLink>
-            );
-          })}
-        </nav>
-        <button
-          onClick={async () => {
-            await postAction("logout");
-            location.replace("/");
-          }}
-        >
-          <LogOut size={17} />
-          ออกจากระบบ
-        </button>
+        {menuLinks}
+        {logoutControl}
       </aside>
-      <main className="desk">
+      <dialog
+        ref={drawer}
+        id="workspace-menu"
+        className="menu-drawer"
+        aria-label="เมนูหลัก"
+        onClose={() => setMenuOpen(false)}
+        onClick={(event) => {
+          if (event.target === event.currentTarget) drawer.current.close();
+        }}
+      >
+        <div className="drawer-content">
+          <header>
+            <BrandLink />
+            <button
+              className="drawer-close"
+              aria-label="ปิดเมนู"
+              onClick={() => drawer.current.close()}
+            >
+              <X size={21} />
+            </button>
+          </header>
+          {menuLinks}
+          {logoutControl}
+        </div>
+      </dialog>
+      <main className="desk" key={view + "-" + id}>
         <header className="deskhead">
           <button
             aria-label={menuOpen ? "ปิดเมนู" : "เปิดเมนูเพิ่มเติม"}
             aria-expanded={menuOpen}
             aria-controls="workspace-menu"
             className="mobilemenu"
-            onClick={() => setMenuOpen(!menuOpen)}
+            onClick={() => {
+              drawer.current.showModal();
+              setMenuOpen(true);
+            }}
           >
             <Menu size={18} />
-            {" เมนู"}
           </button>
-          <span>
+          <strong className="mobile-brand">Trash 2 cash</strong>
+          <span className="desk-user">
             {labels[role]}
             {" · "}
             {state.user.name}
@@ -275,7 +374,9 @@ function Workspace({ initial, view, id }) {
             {refreshError ? "รอเชื่อมต่อ" : "ซิงก์อัตโนมัติ"}
           </span>
         </header>
-        <h1>{heading}</h1>
+        <h1 ref={pageHeading} tabIndex={-1}>
+          {heading}
+        </h1>
         {refreshError && <p role="alert">{refreshError}</p>}
         {view === "home" && (
           <Fragment>
@@ -378,7 +479,13 @@ function Workspace({ initial, view, id }) {
             )}
           </Fragment>
         )}
-        {view === "profile" && <Profile s={state} post={submitAction} />}
+        {view === "profile" && (
+          <Profile
+            s={state}
+            post={submitAction}
+            logoutControl={logoutControl}
+          />
+        )}
         {view === "manage" && <Management s={state} post={submitAction} />}
         {view === "notices" && (
           <section className="panel">
@@ -445,7 +552,6 @@ function Workspace({ initial, view, id }) {
                 prefetch={false}
                 href={viewUrl(String(S))}
                 aria-current={view === S ? "page" : void 0}
-                onClick={() => setMenuOpen(false)}
                 key={String(S)}
               >
                 <NavIcon size={21} />

@@ -64,9 +64,7 @@ function BrandLink() {
   return (
     <SiteLink prefetch={false} className="brand" href="/">
       <img src="/icon.svg" alt="" />
-      <span>
-        ซาเล้งดิจิทัล<small>TRASH TO CASH</small>
-      </span>
+      <span>Trash 2 cash</span>
     </SiteLink>
   );
 }

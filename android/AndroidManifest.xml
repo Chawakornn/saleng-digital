@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="app.salengdigital.demo"
-    android:versionCode="2" android:versionName="2.0.0">
+    android:versionCode="3" android:versionName="2.1.0">
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-sdk android:minSdkVersion="26" android:targetSdkVersion="35" />
-    <application android:label="Saleng Digital" android:icon="@drawable/launcher"
+    <application android:label="Trash 2 cash" android:icon="@drawable/launcher"
         android:allowBackup="false" android:usesCleartextTraffic="false"
         android:theme="@android:style/Theme.Material.Light.NoActionBar">
         <activity android:name=".MainActivity" android:exported="true"
