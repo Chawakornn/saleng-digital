@@ -540,10 +540,10 @@ body:has(.menu-drawer[open]) {
   align-items: center;
   gap: 10px;
   padding: 10px 12px;
-  border: 1px solid #287b49;
-  border-radius: 14px;
-  background: var(--brand);
-  color: #fff;
+  border: 1px solid #ccdfd1;
+  border-radius: 20px;
+  background: #fff;
+  color: #153621;
   box-shadow: 0 5px 20px #18352526;
 }
 .android-update > div {
@@ -551,13 +551,17 @@ body:has(.menu-drawer[open]) {
 }
 .android-update > svg {
   flex: none;
-  color: var(--accent);
+  color: var(--brand);
+  background: #e6f6eb;
+  padding: 8px;
+  box-sizing: content-box;
+  border-radius: 12px;
 }
 .android-update strong {
   font-size: 15px;
 }
 .android-update p {
-  color: #ebf8ea;
+  color: #476250;
   margin: 4px 0 0;
   font-size: 14px;
   line-height: 1.55;
@@ -565,15 +569,15 @@ body:has(.menu-drawer[open]) {
 .android-update .primary {
   min-height: 44px;
   padding: 8px 12px;
-  background: var(--accent);
-  color: #123f22;
+  background: var(--brand);
+  color: #fff;
   white-space: nowrap;
 }
 .android-update .update-later {
   display: grid;
   place-items: center;
   background: none;
-  color: white;
+  color: #476250;
   width: 44px;
   height: 44px;
   padding: 0;
@@ -789,3 +793,90 @@ body:has(.menu-drawer[open]) {
 }
 
 .profile-identity .account-avatar { width:64px; height:64px; border-radius:50%; object-fit:cover; flex:none; }
+
+.notice-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 6px;
+}
+.notice-list li {
+  display: flex;
+  gap: 12px;
+  padding: 14px;
+  border-radius: 16px;
+  align-items: flex-start;
+  overflow-wrap: anywhere;
+}
+.notice-list li[data-unread="true"] { background: #edf8f0; }
+.notice-icon {
+  display: inline-grid;
+  flex: none;
+  width: 38px;
+  height: 38px;
+  place-items: center;
+  background: #f1f4f1;
+  border-radius: 13px;
+  color: #58685e;
+}
+.notice-list p, .notice-empty p { margin: 0 0 4px; }
+.notice-list small { color: #526359; }
+.notice-list small span { margin-inline-start: 6px; }
+.notice-list [data-unread="true"] .notice-icon,
+.notice-list [data-unread="true"] small span,
+.notice-empty .notice-icon { background: #d7efdd; color: #125c30; }
+.notice-list [data-unread="true"] small span {
+  padding: 1px 8px;
+  border-radius: 12px;
+  font-weight: 700;
+}
+.notice-empty { display: grid; justify-items: center; gap: 12px; padding: 28px 8px; }
+.notice-inbox > form { margin-top: 14px; }
+select:not([multiple]):not([size]) {
+  appearance: none;
+  border-radius: 12px;
+  padding-inline-end: 38px;
+  cursor: pointer;
+  background: #fff url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath d='m4 6 4 4 4-4' fill='none' stroke='%23007438' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") right 12px center / 16px no-repeat;
+}
+@supports (appearance: base-select) {
+  select:not([multiple]):not([size]), select:not([multiple]):not([size])::picker(select) {
+    appearance: base-select;
+  }
+  select:not([multiple]):not([size])::picker-icon { display: none; }
+  select::picker(select) {
+    margin-block: 4px;
+    padding: 5px;
+    border: 1px solid #cddfd2;
+    border-radius: 14px;
+    background: white;
+    box-shadow: 0 8px 24px #15362120;
+    max-height: min(44vh, 340px);
+  }
+  select option { padding: 10px 12px; border-radius: 9px; min-height: 44px; }
+  select option:checked { background: #e4f6e9; color: #115b30; }
+  select option:is(:hover, :focus-visible) { background: #eff5f0; }
+}
+details > summary {
+  cursor: pointer;
+  position: relative;
+  padding-inline-end: 36px;
+  list-style: none;
+}
+details > summary::-webkit-details-marker { display: none; }
+details > summary::after {
+  content: "";
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  width: 8px;
+  height: 8px;
+  border: solid var(--brand);
+  border-width: 0 2px 2px 0;
+  transform: translateY(-70%) rotate(45deg);
+}
+details[open] > summary::after { transform: translateY(-25%) rotate(225deg); }
+@media (prefers-reduced-motion: no-preference) {
+  details > summary::after { transition: transform .18s ease; }
+}

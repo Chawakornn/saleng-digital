@@ -508,23 +508,28 @@ function Workspace({ initial, view: firstView, id: firstId }) {
           )}
           {view === "manage" && <Management s={state} post={submitAction} />}
           {view === "notices" && (
-            <section className="panel">
+            <section className="panel notice-inbox" aria-label="รายการแจ้งเตือน">
               {state.notices.length ? (
-                state.notices.map((S) => (
-                  <div className="datarow" key={S.id}>
-                    {S.message}
-                    <small>
-                      {formatDateTime(S.at)}
-                      {" · "}
-                      {S.seen ? "อ่านแล้ว" : "ใหม่"}
-                    </small>
-                  </div>
-                ))
+                <ul className="notice-list">
+                  {state.notices.map((notice) => (
+                    <li key={notice.id} data-unread={!notice.seen}>
+                      <span className="notice-icon"><Bell size={18} aria-hidden="true" /></span>
+                      <div>
+                        <p>{notice.message}</p>
+                        <small>{formatDateTime(notice.at)} <span>{notice.seen ? "อ่านแล้ว" : "ใหม่"}</span></small>
+                      </div>
+                    </li>
+                  ))}
+                </ul>
               ) : (
-                <EmptyState>ยังไม่มีการแจ้งเตือน</EmptyState>
+                <div className="notice-empty">
+                  <span className="notice-icon"><Bell size={24} aria-hidden="true" /></span>
+                  <p>ยังไม่มีการแจ้งเตือน</p>
+                </div>
               )}
-              {state.notices.some((S) => !S.seen) && (
+              {state.notices.some((notice) => !notice.seen) && (
                 <ActionForm
+                  secondary
                   label="ทำเครื่องหมายว่าอ่านทั้งหมด"
                   submit={() => submitAction("read")}
                 />
