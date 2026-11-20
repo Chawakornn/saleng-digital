@@ -9,17 +9,38 @@ import {
   readText,
   weightField,
 } from "../ui/shared.jsx";
-import { Fragment } from "react";
+import { Fragment, useRef, useState } from "react";
 import { CheckAndroidUpdate } from "../ui/AndroidUpdate.jsx";
 import { UserRound } from "lucide-react";
+async function profilePhoto(file) {
+  if (!["image/jpeg","image/png","image/webp"].includes(file.type) || file.size > 8*1024*1024)
+    throw Error("เลือกรูป JPG, PNG หรือ WebP ขนาดไม่เกิน 8 MB");
+  const url=URL.createObjectURL(file);
+  try {
+    const image=new Image();
+    image.src=url;
+    await image.decode();
+    const side=Math.min(image.naturalWidth,image.naturalHeight);
+    const canvas=document.createElement("canvas");
+    canvas.width=canvas.height=240;
+    const ctx=canvas.getContext("2d");
+    ctx.fillStyle="white"; ctx.fillRect(0,0,240,240);
+    ctx.drawImage(image,(image.naturalWidth-side)/2,(image.naturalHeight-side)/2,side,side,0,0,240,240);
+    return canvas.toDataURL("image/jpeg",0.84);
+  } finally { URL.revokeObjectURL(url); }
+}
 function Profile({ s: state, post: submitAction, logoutControl }) {
+  const [photo,setPhoto]=useState(undefined);
+  const [photoError,setPhotoError]=useState("");
+  const [processing,setProcessing]=useState(false);
+  const selection=useRef(0);
   let a = state.user,
     r = state.buyers.find((n) => n.userId === a.id);
   return (
     <div className="detail">
       <section className="panel">
         <div className="profile-identity">
-          <UserRound size={24} aria-hidden="true" />
+          {(photo ?? a.avatar) ? <img className="account-avatar" src={photo ?? a.avatar} alt="รูปโปรไฟล์ของฉัน"/> : <UserRound size={24} aria-hidden="true" />}
           <div>
             <h2>{a.name}</h2>
             <p>
@@ -29,13 +50,29 @@ function Profile({ s: state, post: submitAction, logoutControl }) {
         </div>
         <ActionForm
           label="บันทึกข้อมูลส่วนตัว"
-          submit={(n) =>
-            submitAction("profile", {
-              name: readText(n, "name"),
-            })
-          }
+          submit={async (n) => {
+            if(processing || photoError) throw Error(photoError || "กำลังเตรียมรูป");
+            const seq=selection.current;
+            await submitAction("profile",{name:readText(n,"name"),address:readText(n,"address"),phone:readText(n,"phone"),...(photo===undefined?{}:{avatar:photo})});
+            if(seq===selection.current)setPhoto(undefined);
+          }}
         >
+          <label>เปลี่ยนรูปโปรไฟล์
+            <input type="file" accept="image/jpeg,image/png,image/webp" onChange={async e=>{
+              const file=e.target.files[0]; e.target.value=""; if(!file)return;
+              const seq=++selection.current;
+              setProcessing(true);setPhotoError("");
+              try {const next=await profilePhoto(file);if(seq===selection.current)setPhoto(next);}
+              catch {if(seq===selection.current)setPhotoError("อ่านรูปไม่ได้ กรุณาเลือกรูป JPG, PNG หรือ WebP ไม่เกิน 8 MB");}
+              finally {if(seq===selection.current)setProcessing(false);}
+            }}/>
+          </label>
+          {processing && <small role="status">กำลังเตรียมรูป…</small>}
+          {photoError && <p role="alert">{photoError}</p>}
+          {(photoError || (photo ?? a.avatar)) && <button type="button" className="secondary" onClick={()=>{selection.current++;setPhoto(photoError?undefined:"");setPhotoError("");setProcessing(false);}}>{photoError?"ยกเลิกการเลือกรูป":"ลบรูปโปรไฟล์"}</button>}
           <FormField name="name" label="ชื่อที่ใช้ติดต่อ" value={a.name} />
+          <label>เบอร์โทรศัพท์ (ถ้ามี)<input name="phone" type="tel" autoComplete="tel" maxLength={32} defaultValue={a.phone || ""}/></label>
+          <label>ที่อยู่ (ถ้ามี)<textarea name="address" autoComplete="street-address" maxLength={500} defaultValue={a.address || ""}/></label>
         </ActionForm>
       </section>
       {!window.SalengAndroid && (

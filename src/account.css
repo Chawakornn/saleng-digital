@@ -787,3 +787,5 @@ body:has(.menu-drawer[open]) {
     }
   }
 }
+
+.profile-identity .account-avatar { width:64px; height:64px; border-radius:50%; object-fit:cover; flex:none; }

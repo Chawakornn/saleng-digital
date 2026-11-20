@@ -1,3 +1,4 @@
+import {privateProfile} from "./profile.js";
 import { queryAll, queryOne } from "./database.js";
 import { priceForGrams } from "./actions.js";
 const rows = queryAll,
@@ -207,7 +208,7 @@ async function loadState(user) {
       : [];
   return {
     serverTime: Date.now(),
-    user,
+    user: user ? {...user, ...(await privateProfile(user.id))} : null,
     demo: false,
     communities,
     materials,

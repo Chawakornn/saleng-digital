@@ -1,3 +1,4 @@
+import {savePrivateProfile} from "./profile.js";
 import {
   execute,
   getRecord,
@@ -17,6 +18,7 @@ import {
 import { z } from "zod";
 async function applyManagementAction(user, payload, action) {
   if (action === "profile") {
+    await savePrivateProfile(user.id,payload);
     await execute(
       "UPDATE User SET name=? WHERE id=?",
       requiredText(payload.name, 80),
