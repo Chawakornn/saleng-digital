@@ -12,30 +12,47 @@ async function api(body){
   const r=await fetch("/api/pickup",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(body)});
   const data=await r.json();if(!r.ok)throw Error(data.error||"ทำรายการไม่ได้");return data;
 }
+const pickupIcon=L.divIcon({
+  className:"pickup-symbol",iconSize:[28,36],iconAnchor:[14,35],
+  html:'<svg viewBox="0 0 28 36" aria-hidden="true"><path d="M14 34S2 21 2 14a12 12 0 1 1 24 0c0 7-12 20-12 20Z" fill="#087858" stroke="white" stroke-width="2"/><circle cx="14" cy="14" r="4" fill="white"/></svg>'
+});
+const truckIcon=L.divIcon({
+  className:"pickup-symbol",iconSize:[34,34],iconAnchor:[17,17],
+  html:'<svg viewBox="0 0 34 34" aria-hidden="true"><circle cx="17" cy="17" r="15" fill="#183039" stroke="white" stroke-width="2"/><g fill="none" stroke="white" stroke-width="1.7" stroke-linejoin="round"><path d="M7 11h12v10H7zm12 4h4l4 4v2h-8"/><circle cx="11" cy="22" r="2"/><circle cx="23" cy="22" r="2"/></g></svg>'
+});
 function MapView({pin,driver,pick}){
-  const node=useRef(null),map=useRef(null),pins=useRef(null),click=useRef(pick),lastPin=useRef("");
+  const node=useRef(null),map=useRef(null),markers=useRef({}),click=useRef(pick),lastFrame=useRef("");
   click.current=pick;
-  useEffect(()=>{
-    const m=L.map(node.current,{scrollWheelZoom:false}).setView([13.75,100.5],6);
-    L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png",{maxZoom:19,attribution:'© <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noreferrer">OpenStreetMap</a>'}).addTo(m);
-    pins.current=L.layerGroup().addTo(m);map.current=m;
-    m.on("click",e=>click.current?.({lat:e.latlng.lat,lng:e.latlng.lng}));
-    return ()=>{m.remove();};
-  },[]);
-  useEffect(()=>{
-    const m=map.current, layer=pins.current;layer.clearLayers();
+  function frame(){
     if(!pin)return;
     const dest=[pin.lat,pin.lng];
-    L.circleMarker(dest,{radius:8,color:"#173f47",fillColor:"#aeefdb",fillOpacity:1}).addTo(layer).bindTooltip("จุดรับ");
-    if(driver)L.circleMarker([driver.lat,driver.lng],{radius:9,color:"#874008",fillColor:"#ffc174",fillOpacity:1}).addTo(layer).bindTooltip("รถรับซื้อ");
-    const key=dest.join(",")+Boolean(driver);
-    if(key!==lastPin.current){
-      if(driver)m.fitBounds([dest,[driver.lat,driver.lng]],{padding:[30,30],maxZoom:16});
-      else m.setView(dest,15);
-      lastPin.current=key;
+    if(driver)map.current.fitBounds([dest,[driver.lat,driver.lng]],{padding:[56,56],maxZoom:16,animate:false});
+    else map.current.setView(dest,16,{animate:false});
+  }
+  useEffect(()=>{
+    const m=L.map(node.current,{scrollWheelZoom:false,zoomControl:false}).setView([13.75,100.5],6);
+    m.attributionControl.setPrefix(false);
+    L.control.zoom({position:"topright",zoomInTitle:"ซูมเข้า",zoomOutTitle:"ซูมออก"}).addTo(m);
+    L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png",{maxZoom:19,attribution:'© <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noreferrer">OpenStreetMap</a>'}).addTo(m);
+    map.current=m;
+    m.on("click",e=>click.current?.({lat:e.latlng.lat,lng:e.latlng.lng}));
+    return ()=>{m.remove();markers.current={};lastFrame.current="";};
+  },[]);
+  useEffect(()=>{
+    const m=map.current;
+    for(const [key,point,icon,label] of [["pin",pin,pickupIcon,"จุดรับ"],["driver",driver,truckIcon,"รถรับซื้อ"]]){
+      const marker=markers.current[key];
+      if(!point){marker?.remove();delete markers.current[key];continue;}
+      if(marker)marker.setLatLng([point.lat,point.lng]);
+      else markers.current[key]=L.marker([point.lat,point.lng],{icon,title:label,alt:label})
+        .addTo(m).bindTooltip(label,{direction:"top",offset:[0,key==="pin"?-32:-16]});
     }
+    const key=pin?[pin.lat,pin.lng,Boolean(driver)].join(","):"";
+    if(key!==lastFrame.current){frame();lastFrame.current=key;}
   },[pin?.lat,pin?.lng,driver?.lat,driver?.lng]);
-  return <div ref={node} className="pickup-map" aria-label="แผนที่จุดรับและตำแหน่งรถ"/>;
+  return <div className="pickup-map-wrap"><div ref={node} className="pickup-map" aria-label="แผนที่จุดรับและตำแหน่งรถ"/>
+    {pin && <button type="button" className="pickup-recenter" onClick={frame}>{driver?"ดูจุดรับและรถ":"กลับไปที่หมุด"}</button>}
+  </div>;
 }
 export function Pickup({user}){
   const buyer=user.role==="buyer",native=window.SalengAndroid;
@@ -69,9 +86,9 @@ export function Pickup({user}){
   return <section className="panel pickup">
     {error && <p role="alert" className="error">{error}</p>}
     {!data?<p>กำลังโหลดงานรับวัสดุ…</p>:job?<>
-      <h2>{labels[job.status]}</h2><p>งาน #{job.id} · {job.material} · {job.grams/1000} กก. {job.shop && " · "+job.shop}</p>
       <MapView pin={dest} driver={driver}/>
-      <small>เขียว = จุดรับ · ส้ม = รถ {job.seen && " · พิกัดล่าสุด "+new Date(job.seen).toLocaleTimeString("th-TH")}</small>
+      <h2>{labels[job.status]}</h2><p>งาน #{job.id} · {job.material} · {job.grams/1000} กก. {job.shop && " · "+job.shop}</p>
+      {job.seen && <small>ตำแหน่งรถล่าสุด {new Date(job.seen).toLocaleTimeString("th-TH")}</small>}
       {job.status==="open" && <p>รอร้านที่เปิดดูงานใกล้เคียง คุณยกเลิกและเลือกจองรอบแทนได้</p>}
       {buyer && ["matched","driving"].includes(job.status) && <>
         {tracking?btn("หยุดแชร์ตำแหน่ง",async()=>{native?.stopPickup?.();setWebJob(0);},true):btn("เริ่มแชร์ GPS กับผู้ขาย",async()=>{
@@ -95,8 +112,8 @@ export function Pickup({user}){
       {near && !data.offers.length && <p>ยังไม่มีงานใกล้คุณ ระบบตรวจงานใหม่ระหว่างเปิดหน้านี้</p>}
       {data.offers.map(o=><div className="datarow" key={o.id}><span>{o.material} · {o.grams/1000} กก. · {o.km} กม.</span>{btn("รับงาน",()=>send("accept",{id:o.id,position:near}))}</div>)}
     </>:<>
-      <h2>นัดรถมารับที่บ้าน</h2><p>แตะแผนที่เพื่อปักหมุด หรือใช้พิกัดจากมือถือ</p>
       <MapView pin={point} pick={setPoint}/>
+      <h2>เลือกจุดรับ</h2><p>แตะแผนที่เพื่อปักหมุด หรือใช้ตำแหน่งของมือถือ</p>
       {btn("ใช้ตำแหน่งของฉัน",async()=>setPoint(await gps()),true)}
       {point && <small>จุดรับ {point.lat.toFixed(5)}, {point.lng.toFixed(5)}</small>}
       <form className="form" onSubmit={e=>{e.preventDefault();const f=new FormData(e.currentTarget);run(()=>send("create",{lat:point.lat,lng:point.lng,material:f.get("material"),grams:Math.round(Number(f.get("kg"))*1000)}));}}>

@@ -3,3 +3,17 @@
 .pickup > button {justify-self:start}
 .pickup-map {height:clamp(240px,38vh,400px);border-radius:14px;background:#dfece7;isolation:isolate;z-index:0}
 .pickup-map .leaflet-control-attribution a {color:#174851}
+
+.pickup-map-wrap {position:relative;isolation:isolate;overflow:hidden;border-radius:16px}
+.pickup-map {height:clamp(300px,46svh,490px);border-radius:0;background:#eceeeb}
+.pickup-map .leaflet-tile-pane {filter:grayscale(.94) contrast(.87) brightness(1.07)}
+.pickup-symbol svg {display:block;width:100%;height:100%;filter:drop-shadow(0 2px 2px #142e382d)}
+.pickup-map .leaflet-control-zoom {border:0;border-radius:12px;overflow:hidden;box-shadow:0 2px 8px #172b3424}
+.pickup-map .leaflet-control-zoom a {width:40px;height:40px;line-height:40px;color:#213a3c}
+.pickup-recenter {position:absolute;z-index:1;bottom:14px;left:12px;min-height:44px;padding:8px 14px;border:1px solid #cdd6d2;border-radius:24px;background:white;color:#17353c;font-size:14px;font-weight:650;box-shadow:0 2px 8px #172b341a}
+.pickup-map + .pickup-recenter:focus-visible {outline-offset:-4px}
+@media(max-width:600px){
+  .pickup:has(.pickup-map-wrap){padding:0 16px 18px;overflow:hidden}
+  .pickup-map-wrap {margin:0 -16px 4px;border-radius:0}
+  .pickup > .primary,.pickup > .secondary {width:100%}
+}
