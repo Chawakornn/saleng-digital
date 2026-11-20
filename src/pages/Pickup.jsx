@@ -18,7 +18,7 @@ const pickupIcon=L.divIcon({
 });
 const truckIcon=L.divIcon({
   className:"pickup-symbol",iconSize:[34,34],iconAnchor:[17,17],
-  html:'<svg viewBox="0 0 34 34" aria-hidden="true"><circle cx="17" cy="17" r="15" fill="#183039" stroke="white" stroke-width="2"/><g fill="none" stroke="white" stroke-width="1.7" stroke-linejoin="round"><path d="M7 11h12v10H7zm12 4h4l4 4v2h-8"/><circle cx="11" cy="22" r="2"/><circle cx="23" cy="22" r="2"/></g></svg>'
+  html:'<svg viewBox="0 0 34 34" aria-hidden="true"><circle cx="17" cy="17" r="15" fill="#294db2" stroke="white" stroke-width="2"/><g fill="none" stroke="white" stroke-width="1.7" stroke-linejoin="round"><path d="M7 11h12v10H7zm12 4h4l4 4v2h-8"/><circle cx="11" cy="22" r="2"/><circle cx="23" cy="22" r="2"/></g></svg>'
 });
 function MapView({pin,driver,pick}){
   const node=useRef(null),map=useRef(null),markers=useRef({}),click=useRef(pick),lastFrame=useRef("");
