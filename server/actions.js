@@ -184,6 +184,7 @@ async function applyManagementAction(user, payload, action) {
           name: r,
           guide: n,
           art: "paper",
+          active: payload.active === false ? 0 : 1,
         }));
     await insert("Price", {
       materialId: o,

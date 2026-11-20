@@ -5,7 +5,6 @@ import {
   formatDateTime,
   formatMoney,
   labels,
-  moneyField,
   readScaledNumber,
   readText,
   weightField,
@@ -91,6 +90,44 @@ function Profile({ s: state, post: submitAction, logoutControl }) {
       <CheckAndroidUpdate />
       {logoutControl}
     </div>
+  );
+}
+export function MaterialEditor({materials, post: submitAction}) {
+  return (
+    <section className="panel">
+      <h2>จัดการวัสดุและราคากลาง</h2>
+      {[null, ...materials].map((r) => (
+        <details key={r?.id || 0}>
+          <summary>
+            {r ? r.name + " · ฿" + formatMoney(r.price) + " / กก." : "＋ เพิ่มวัสดุและราคากลาง"}
+          </summary>
+          <ActionForm
+            label="บันทึกวัสดุและราคา"
+            submit={(n) =>
+              submitAction("material", {
+                materialId: r?.id,
+                name: readText(n, "name"),
+                guide: readText(n, "guide"),
+                price: readScaledNumber(n, "price", 100),
+                active: n.has("active"),
+              })
+            }
+          >
+            <FormField name="name" label="ชื่อวัสดุ" value={r?.name} />
+            <FormField name="guide" label="วิธีเตรียม" value={r?.guide} />
+            <FormField name="price" label="ราคากลาง (บาท/กก.)" type="number" min={0} max={10000} step=".01" value={r ? r.price / 100 : undefined} />
+            <label className="inline">
+              <input
+                name="active"
+                type="checkbox"
+                defaultChecked={r ? !!r.active : true}
+              />
+              เปิดรับวัสดุ
+            </label>
+          </ActionForm>
+        </details>
+      ))}
+    </section>
   );
 }
 function Management({ s: state, post: submitAction }) {
@@ -226,40 +263,7 @@ function Management({ s: state, post: submitAction }) {
       </section>
       {a && (
         <Fragment>
-          <section className="panel">
-            <h2>วัสดุและราคาอ้างอิง</h2>
-            {[...state.materials, null].map((r) => (
-              <details key={r?.id || 0}>
-                <summary>
-                  {r ? r.name + " · ฿" + formatMoney(r.price) : "เพิ่มวัสดุ"}
-                </summary>
-                <ActionForm
-                  label="บันทึกวัสดุและราคา"
-                  submit={(n) =>
-                    submitAction("material", {
-                      materialId: r?.id,
-                      name: readText(n, "name"),
-                      guide: readText(n, "guide"),
-                      price: readScaledNumber(n, "price", 100),
-                      active: n.has("active"),
-                    })
-                  }
-                >
-                  <FormField name="name" label="ชื่อวัสดุ" value={r?.name} />
-                  <FormField name="guide" label="วิธีเตรียม" value={r?.guide} />
-                  {moneyField("price", "ราคาอ้างอิงต่อ กก.", r?.price)}
-                  <label className="inline">
-                    <input
-                      name="active"
-                      type="checkbox"
-                      defaultChecked={r ? !!r.active : true}
-                    />
-                    เปิดรับวัสดุ
-                  </label>
-                </ActionForm>
-              </details>
-            ))}
-          </section>
+          <MaterialEditor materials={state.materials} post={submitAction} />
           <section className="panel">
             <h2>ประวัติการดำเนินงาน</h2>
             {state.audit.map((r) => (

@@ -37,7 +37,7 @@ import { RoundDetail, RoundForm } from "./Rounds.jsx";
 import { BookingForm } from "./BookingForm.jsx";
 import { BookingDetail } from "./BookingDetail.jsx";
 import { Reports } from "./Reports.jsx";
-import { Management, Profile } from "./Management.jsx";
+import { Management, MaterialEditor, Profile } from "./Management.jsx";
 const Pickup = lazy(() => import("./Pickup.jsx").then(module => ({ default: module.Pickup })));
 function Workspace({ initial, view: firstView, id: firstId }) {
   const [{ view, id }, setRoute] = useState({ view: firstView, id: firstId });
@@ -484,6 +484,7 @@ function Workspace({ initial, view: firstView, id: firstId }) {
           )}
           {view === "materials" && (
             <Fragment>
+              {role === "admin" && <MaterialEditor materials={state.materials} post={submitAction} />}
               <p>
                 แตะวัสดุเพื่อคำนวณยอดขายโดยประมาณและดูวิธีคัดแยก{state.demo ? " (ราคาสาธิต)" : ""}{" "}
                 {
