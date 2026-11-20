@@ -258,17 +258,17 @@
 }
 @layer components,utilities;
 :root {
-  --ink: #17353c;
-  --brand: #153f47;
-  --accent: #a8ebd7;
-  --muted: #475e64;
-  --mist: #e5f2ef;
-  --focus: #086a76;
+  --ink: #162b20;
+  --brand: #007438;
+  --accent: #a4f696;
+  --muted: #495d50;
+  --mist: #eaf8eb;
+  --focus: #006330;
   --motion-ease: cubic-bezier(.22, .78, .25, 1);
-  --green: #16655c;
-  --lime: #d7eee8;
-  --paper: #faf8f3;
-  --line: #d8e1dc;
+  --green: #007335;
+  --lime: #caf3d1;
+  --paper: #fafcf9;
+  --line: #d9e5db;
   color: var(--ink);
   background: var(--paper);
   font-family:
@@ -415,7 +415,7 @@ small {
 }
 .login:hover,
 .primary:hover {
-  background: #235860;
+  background: #005f30;
 }
 .textlink,
 .under {
@@ -434,7 +434,7 @@ small {
 .authart,
 .hero {
   border: 1px solid var(--line);
-  background: #f4ecdd;
+  background: #e7f8e6;
   border-radius: 22px;
   overflow: hidden;
 }
@@ -664,7 +664,7 @@ input,
 select,
 textarea {
   background: #fff;
-  border: 1px solid #adbfbb;
+  border: 1px solid #a9bcb0;
   border-radius: 8px;
   min-width: 0;
   max-width: 100%;
@@ -842,7 +842,7 @@ dialog {
   inset: 0;
 }
 dialog::backdrop {
-  background: #153f4766;
+  background: #00743866;
 }
 @media (max-width: 820px) {
   .matgrid {
@@ -1048,7 +1048,7 @@ summary {
   font-size: 1.125rem;
 }
 .heroart {
-  background: #f4ecdd;
+  background: #e7f8e6;
 }
 .heroart img {
   mix-blend-mode: multiply;

@@ -1,4 +1,4 @@
-const CACHE_NAME = "saleng-digital-accounts-v6";
+const CACHE_NAME = "saleng-digital-accounts-v7";
 const APP_SHELL = [
   "/",
   "/manifest.webmanifest",

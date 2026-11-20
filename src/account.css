@@ -45,7 +45,7 @@
 .account-story {
   overflow: hidden;
   border-radius: 28px;
-  background: #f4ecdd;
+  background: #e7f8e6;
   padding: clamp(26px, 4vw, 55px) 0 0;
   align-self: stretch;
   display: flex;
@@ -100,7 +100,7 @@
   width: 100%;
   height: 50px;
   padding: 0 14px;
-  border: 1px solid #adbfbb;
+  border: 1px solid #a9bcb0;
   background: white;
   border-radius: 10px;
   color: var(--brand);
@@ -110,7 +110,7 @@
 }
 .account-form input:focus {
   border-color: var(--focus);
-  outline: 3px solid #c4e9e4;
+  outline: 3px solid #bcebc9;
 }
 .secret-field {
   position: relative;
@@ -172,7 +172,7 @@
   display: inline-flex;
   align-items: center;
   gap: 7px;
-  color: #3a605d;
+  color: #356646;
   font-size: 13px;
   white-space: nowrap;
 }
@@ -433,19 +433,19 @@ body:has(.menu-drawer[open]) {
 }
 @media screen {
   .next-action {
-    background: linear-gradient(114deg, #133b44, #1d5257);
+    background: linear-gradient(114deg, #005e30, #00853d);
     color: white;
   }
   .next-action p {
-    color: #d4e8e5;
+    color: #e5f8e6;
   }
   .next-action > svg {
-    background: #32646a;
+    background: #167d46;
     color: var(--accent);
   }
   .next-action .primary {
     background: var(--accent);
-    color: var(--brand);
+    color: #123f22;
     border-color: transparent;
   }
 }
@@ -540,7 +540,7 @@ body:has(.menu-drawer[open]) {
   align-items: center;
   gap: 10px;
   padding: 10px 12px;
-  border: 1px solid #42656a;
+  border: 1px solid #287b49;
   border-radius: 14px;
   background: var(--brand);
   color: #fff;
@@ -557,7 +557,7 @@ body:has(.menu-drawer[open]) {
   font-size: 15px;
 }
 .android-update p {
-  color: #dfefeb;
+  color: #ebf8ea;
   margin: 4px 0 0;
   font-size: 14px;
   line-height: 1.55;
@@ -566,7 +566,7 @@ body:has(.menu-drawer[open]) {
   min-height: 44px;
   padding: 8px 12px;
   background: var(--accent);
-  color: var(--brand);
+  color: #123f22;
   white-space: nowrap;
 }
 .android-update .update-later {
@@ -604,7 +604,7 @@ body:has(.menu-drawer[open]) {
   padding: 4px;
   border: 1px solid var(--line);
   border-radius: 13px;
-  background: #e1ebe8;
+  background: #edf4ed;
   margin: 0 0 18px;
 }
 .auth-mode::before {
@@ -614,7 +614,7 @@ body:has(.menu-drawer[open]) {
   width: calc(50% - 4px);
   border-radius: 9px;
   background: white;
-  box-shadow: 0 1px 4px #153f4722;
+  box-shadow: 0 1px 4px #00743822;
 }
 .auth-mode[data-signup="true"]::before { transform: translateX(100%); }
 .auth-mode label { position: relative; cursor: pointer; }
@@ -689,10 +689,10 @@ body:has(.menu-drawer[open]) {
 .history-empty { gap: 14px; margin-top: 8px; border-top: 1px solid var(--line); }
 .history-empty p { margin: 0; font-weight: 650; color: var(--ink); }
 .history-empty small { font-weight: normal; }
-.home-shortcuts a:hover, .home-record:hover { background: #d6ece7; }
+.home-shortcuts a:hover, .home-record:hover { background: #d8f2dc; }
 
 .matgrid { align-items: start; }
-.material[data-open="true"] { border-color: #91b7ae; }
+.material[data-open="true"] { border-color: #81b48e; }
 .material[data-open="true"] .material-chevron { transform: rotate(180deg); }
 .material-estimate {
   display: grid;
@@ -718,7 +718,7 @@ body:has(.menu-drawer[open]) {
   .material-chevron { transition: transform .18s ease-out; }
 }
 @media (max-width: 700px) {
-  .account-story { background: #f4ecdd; min-height: 120px; }
+  .account-story { background: #e7f8e6; min-height: 120px; }
   .account-story img { width: 55%; right: -2%; bottom: -8%; }
   .account-story div { max-width: 54%; }
   .account-form h1 { font-size: 32px; }
@@ -750,7 +750,7 @@ body:has(.menu-drawer[open]) {
   grid-template-rows: 1fr;
   visibility: visible;
 }
-.badge { color: #235f54; }
+.badge { color: #21633b; }
 .badge i { background: currentColor; }
 .badge[data-status="BOOKED"],
 .badge[data-status="AWAITING_SELLER_ACCEPTANCE"],

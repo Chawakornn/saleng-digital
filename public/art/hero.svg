@@ -38,7 +38,7 @@
       <circle r="4" fill="none"/><path d="M-9 0H9M0-9V9"/>
     </g>
   </defs>
-  <rect width="760" height="510" fill="#f7efe1"/>
+  <rect width="760" height="510" fill="#eaf6e5"/>
   <rect width="760" height="510" fill="url(#grid)"/>
   <circle cx="512" cy="150" r="107" fill="#efba79"/>
   <path d="M405 150a107 107 0 0 1 107-107" fill="none" stroke="#9ab581" stroke-dasharray="2 5"/>
@@ -124,8 +124,8 @@
     <path d="M339 263l34-19-3 35-33 16z" fill="#997c52"/>
     <path d="M276 251l-8-13 64 10 7 15zm63 12l11-16 33-18-10 15z" fill="#e0c794"/>
     <path d="M149 271l39-20 1 13-30 15z" fill="#6f956a"/>
-    <path d="M148 273l167 28 65-37-1 66-64 41-165-32z" fill="#4b948b"/>
-    <path d="M148 273l167 29v67l-165-31z" fill="#78b5a8"/>
+    <path d="M148 273l167 28 65-37-1 66-64 41-165-32z" fill="#368653"/>
+    <path d="M148 273l167 29v67l-165-31z" fill="#51b77b"/>
     <path d="M154 285l154 27v46l-153-28z" fill="url(#crate)" stroke="none"/>
     <path d="M149 268l164 28 67-38 2 9-67 41-166-30z" fill="#acd6c5"/>
     <path d="M151 329l164 31 62-39v11l-61 40-165-34z" fill="#4f7556"/>
