@@ -25,6 +25,8 @@ public final class MainActivity extends Activity {
     private static final String LEGACY = "https://appassets.androidplatform.net";
     static final String START = "https://" + HOST + "/";
     private static final int PICK_IMAGE = 1, SAVE_CSV = 2;
+    private GeolocationPermissions.Callback geoCallback;
+    private String geoOrigin;
     private WebView web;
     private ValueCallback<Uri[]> imageResult;
     private String pendingCsv;
@@ -51,7 +53,8 @@ public final class MainActivity extends Activity {
 
             @Override public WebResourceResponse shouldInterceptRequest(WebView view, WebResourceRequest request) {
                 Uri uri = request.getUrl();
-                if (isLocal(uri)) return null;
+                if (isLocal(uri) || ("https".equals(uri.getScheme()) && "tile.openstreetmap.org".equals(uri.getAuthority())
+                    && uri.getPath().matches("/[0-9]+/[0-9]+/[0-9]+\\.png"))) return null;
                 return new WebResourceResponse("text/plain", "UTF-8", 403, "Forbidden",
                     Collections.emptyMap(), new ByteArrayInputStream(new byte[0]));
             }
@@ -60,6 +63,12 @@ public final class MainActivity extends Activity {
             }
         });
         web.setWebChromeClient(new WebChromeClient() {
+            @Override public void onGeolocationPermissionsShowPrompt(String origin, GeolocationPermissions.Callback callback) {
+                if(!isLocal(Uri.parse(origin))) {callback.invoke(origin,false,false);return;}
+                if(hasGpsPermission()){callback.invoke(origin,true,false);return;}
+                geoOrigin=origin;geoCallback=callback;
+                requestPermissions(new String[]{android.Manifest.permission.ACCESS_FINE_LOCATION,android.Manifest.permission.ACCESS_COARSE_LOCATION},42);
+            }
             @Override public boolean onShowFileChooser(WebView view, ValueCallback<Uri[]> callback,
                     FileChooserParams params) {
                 if (imageResult != null) imageResult.onReceiveValue(null);
@@ -132,7 +141,29 @@ public final class MainActivity extends Activity {
         getPreferences(MODE_PRIVATE).edit().putBoolean("legacyReviewed",true).apply();
     }
 
+    private boolean hasGpsPermission(){
+        return checkSelfPermission(android.Manifest.permission.ACCESS_COARSE_LOCATION)==PackageManager.PERMISSION_GRANTED;
+    }
+    @Override public void onRequestPermissionsResult(int request,String[] perms,int[] results){
+        super.onRequestPermissionsResult(request,perms,results);
+        if(request==42 && geoCallback!=null){geoCallback.invoke(geoOrigin,hasGpsPermission(),false);geoCallback=null;}
+    }
     private final class DeviceActions {
+        @JavascriptInterface public void navigatePickup(double lat,double lng){
+            if(!Double.isFinite(lat)||!Double.isFinite(lng)||Math.abs(lat)>90||Math.abs(lng)>180)return;
+            runOnUiThread(()->{try{startActivity(new Intent(Intent.ACTION_VIEW,Uri.parse("https://www.google.com/maps/dir/?api=1&destination="+lat+","+lng)));}catch(ActivityNotFoundException e){message("เปิดแผนที่ไม่ได้");}});
+        }
+        @JavascriptInterface public int trackingJob(){return PickupTracking.active;}
+        @JavascriptInterface public void stopPickup(){stopService(new Intent(MainActivity.this,PickupTracking.class));}
+        @JavascriptInterface public void startPickup(int id){
+            runOnUiThread(()->{
+                if(!hasGpsPermission()||id<=0||!hasWindowFocus())return;
+                Intent service=new Intent(MainActivity.this,PickupTracking.class).putExtra("job",id)
+                    .putExtra("cookie",CookieManager.getInstance().getCookie(START));
+                try{startForegroundService(service);}catch(RuntimeException e){message("เปิด GPS และอนุญาตตำแหน่งก่อนเริ่มแชร์");}
+            });
+        }
+
         @JavascriptInterface public int getVersionCode() {
             try {
                 return getPackageManager().getPackageInfo(getPackageName(), 0).versionCode;

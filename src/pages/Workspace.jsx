@@ -1,4 +1,4 @@
-import { Fragment, useEffect, useRef, useState } from "react";
+import { lazy, Suspense, Fragment, useEffect, useRef, useState } from "react";
 import {
   ActionForm,
   BrandLink,
@@ -38,6 +38,7 @@ import { BookingForm } from "./BookingForm.jsx";
 import { BookingDetail } from "./BookingDetail.jsx";
 import { Reports } from "./Reports.jsx";
 import { Management, Profile } from "./Management.jsx";
+const Pickup = lazy(() => import("./Pickup.jsx").then(module => ({ default: module.Pickup })));
 function Workspace({ initial, view: firstView, id: firstId }) {
   const [{ view, id }, setRoute] = useState({ view: firstView, id: firstId });
   const drawer = useRef(null);
@@ -175,6 +176,7 @@ function Workspace({ initial, view: firstView, id: firstId }) {
     isSeller = role === "seller",
     navigation = [
       ["home", "ภาพรวม", LayoutDashboard],
+      ...(["seller","buyer"].includes(role) ? [["pickup", isSeller ? "เรียกรถมารับ" : "งานรับวัสดุใกล้ฉัน", CalendarDays]] : []),
       ...(isSeller ? [["new", "จองขายวัสดุ", Plus]] : []),
       ["rounds", "รอบรับซื้อ", CalendarDays],
       ["bookings", isSeller ? "รายการของฉัน" : "รายการขาย", ClipboardList],
@@ -381,9 +383,11 @@ function Workspace({ initial, view: firstView, id: firstId }) {
             {heading}
           </h1>
           {refreshError && <p role="alert">{refreshError}</p>}
+          {view === "pickup" && ["seller","buyer"].includes(role) && <Suspense fallback={<p>กำลังเปิดแผนที่…</p>}><Pickup user={state.user}/></Suspense>}
           {view === "home" && (
             <Fragment>
               <Dashboard state={state} />
+              {["seller","buyer"].includes(role) && <SiteLink className="primary" style={{marginBottom:16}} href={viewUrl("pickup")}>{isSeller?"เรียกรถมารับที่บ้าน":"ดูงานรับวัสดุใกล้ฉัน"}</SiteLink>}
               <nav className="home-shortcuts" aria-label="ทางลัดภาพรวม">
                 <SiteLink href={viewUrl("rounds")}>
                   <CalendarDays size={20} aria-hidden="true" />

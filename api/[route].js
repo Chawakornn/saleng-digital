@@ -1,3 +1,4 @@
+import {preparePickups,pickupAction} from "../server/pickups.js";
 import {
   authenticate,
   clearCookie,
@@ -122,7 +123,7 @@ export default async function handler(req, res) {
       return res.end(Buffer.from(image, "base64"));
     }
     requireCondition(
-      req.method === "POST" && ["auth", "action", "image"].includes(route),
+      req.method === "POST" && ["auth", "action", "image", "pickup"].includes(route),
       "ไม่พบหน้าที่ขอ",
       404,
     );
@@ -146,6 +147,12 @@ export default async function handler(req, res) {
       if (hash) await execute("DELETE FROM Session WHERE token=?", hash);
       res.setHeader("Set-Cookie", clearCookie());
       return json(res, 200, { ok: true });
+    }
+    if (route === "pickup") {
+      await activeUser(hash);
+      await preparePickups();
+      const data = await transaction(async () => pickupAction(await activeUser(hash),body),body.action === "list" ? "read" : "write");
+      return json(res,200,data);
     }
     const result = await transaction(async () => {
       const user = await activeUser(hash);

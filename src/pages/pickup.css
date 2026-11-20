@@ -1,0 +1,5 @@
+.pickup {display:grid;gap:12px;max-width:760px}
+.pickup h2,.pickup p {margin:0}
+.pickup > button {justify-self:start}
+.pickup-map {height:clamp(240px,38vh,400px);border-radius:14px;background:#dfece7;isolation:isolate;z-index:0}
+.pickup-map .leaflet-control-attribution a {color:#174851}
